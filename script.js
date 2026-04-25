@@ -62,6 +62,14 @@ function updateSlider() {
   spectrumLabel.innerText = getScoreLabel(val);
 }
 slider.addEventListener('input', updateSlider);
+slider.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = slider.getBoundingClientRect();
+  const x = Math.max(0, Math.min(touch.clientX - rect.left, rect.width));
+  slider.value = Math.round((x / rect.width) * 100);
+  updateSlider();
+}, { passive: false });
 updateSlider();
 
 // 4. 이모티콘 선택
@@ -665,7 +673,7 @@ window.switchAdminView = function(view) {
   document.getElementById('admin-members-panel').style.display = view === 'members' ? 'block' : 'none';
   document.getElementById('admin-tab-match').classList.toggle('active', view === 'match');
   document.getElementById('admin-tab-members').classList.toggle('active', view === 'members');
-  if (view === 'members') renderAllMembersPanel();
+  if (view === 'members') { renderAllMembersPanel(); loadAdminData(); }
 };
 
 window.goToAdminStep = function(n, skipConfirm) {
@@ -688,7 +696,7 @@ window.goToAdminStep = function(n, skipConfirm) {
 function scheduleAdminRender() {
   clearTimeout(adminRenderTimer);
   adminRenderTimer = setTimeout(() => {
-    if (adminUsersSnap && adminReqSnap) renderAdminFromSnaps(adminUsersSnap, adminReqSnap);
+    if (adminUsersSnap) renderAdminFromSnaps(adminUsersSnap, adminReqSnap || { forEach: () => {} });
   }, 150);
 }
 
@@ -761,12 +769,7 @@ function renderAllMembersPanel() {
         </div>
       </div>
       <div class="member-actions">
-        <select onchange="adminChangeStatus('${u.id}', this.value, '${escNick}'); this.value=''" style="margin-bottom:0; font-size:0.72rem; padding:5px 6px; border-radius:8px; width:auto; border:1px solid #ddd; background:white; cursor:pointer;">
-          <option value="">상태▾</option>
-          <option value="waiting">대기</option>
-          <option value="submitted">제출</option>
-          <option value="held">보류</option>
-        </select>
+        ${u.status !== 'waiting' ? `<button onclick="adminChangeStatus('${u.id}', 'waiting', '${escNick}')" style="background:#f0f2f5; color:#34495e; border:1px solid #ddd; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-bottom:2px;">대기 복구</button>` : ''}
         <button onclick="adminTogglePart('${u.id}', '${escNick}', ${u.isParticipating !== false})" style="background:${partColor}; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">${u.isParticipating !== false ? '불참전환' : '참여전환'}</button>
         ${!u.isAdmin ? `<button onclick="adminDeleteUser('${u.id}', '${escNick}')" style="background:#fdf0f0; color:#e74c3c; border:1px solid #f5c6c6; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">삭제</button>` : ''}
       </div>
@@ -802,12 +805,14 @@ window.adminDeleteUser = function(uid, nickname) {
 };
 
 function loadAdminData() {
-  if (adminUsersSnap && adminReqSnap) {
-    renderAdminFromSnaps(adminUsersSnap, adminReqSnap);
+  if (adminUsersSnap) {
+    renderAdminFromSnaps(adminUsersSnap, adminReqSnap || { forEach: () => {} });
   } else {
     db.collection('users').get().then(snap => {
-      db.collection('requests').get().then(reqSnap => renderAdminFromSnaps(snap, reqSnap));
-    });
+      db.collection('requests').get()
+        .then(reqSnap => renderAdminFromSnaps(snap, reqSnap))
+        .catch(() => renderAdminFromSnaps(snap, { forEach: () => {} }));
+    }).catch(err => console.error('Admin data load failed:', err));
   }
 }
 
