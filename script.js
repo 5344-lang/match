@@ -205,15 +205,24 @@ function updateWaitroomUI() {
   const desc = document.getElementById('room-status-desc');
   const btn = document.getElementById('waitroom-mypage-btn');
   const matchLabel = document.getElementById('room-match-label');
+  const toggle = document.getElementById('waitroom-participation-toggle'); // 대기실 토글 추가
+
+  // 현재 유저 데이터에 맞춰 토글 체크 상태 동기화
+  const isPart = myUserData.isParticipating !== false;
+  if (toggle) toggle.checked = isPart;
+
   if (matchLabel) matchLabel.innerText = globalSettings.matchTitle || '';
-  if(myUserData.isParticipating) {
+
+  if(isPart) {
     title.innerText = "⏳ 매칭 시작 전입니다.";
     desc.innerHTML = "진행자가 매칭을 시작할 때까지 잠시 기다려주세요.<br>그동안 내 프로필이 잘 설정되었는지 확인해볼까요?";
-    btn.innerText = "🔍 내 프로필 점검하기"; btn.style.background = "var(--deep-navy)";
+    btn.innerText = "🔍 내 프로필 점검하기";
+    btn.style.background = "var(--deep-navy)";
   } else {
     title.innerText = "💤 이번 매칭에 참여하지 않네요.";
-    desc.innerHTML = "다음에 만나요!<br>만약 참여를 원하신다면 프로필을 수정해주세요.";
-    btn.innerText = "✏️ 내 프로필 수정하기"; btn.style.background = "var(--soft-rose)";
+    desc.innerHTML = "다음에 만나요!<br>만약 참여를 원하신다면 위 토글을 켜주세요.";
+    btn.innerText = "✏️ 내 프로필 수정하기";
+    btn.style.background = "var(--soft-rose)";
   }
 }
 
@@ -551,4 +560,14 @@ document.getElementById('apply-toggles-btn').addEventListener('click', () => {
     showPref3: document.getElementById('toggle-pref3').checked,
     showDispref: document.getElementById('toggle-dispref').checked
   }, { merge: true }).then(() => alert("지망 옵션 적용 완료"));
+});
+// 🌟 대기실 토글을 조작하면 즉시 데이터베이스(DB)에 반영
+document.getElementById('waitroom-participation-toggle').addEventListener('change', function() {
+  const isPart = this.checked;
+  const user = auth.currentUser;
+  if (user) {
+    db.collection('users').doc(user.uid).update({
+      isParticipating: isPart
+    });
+  }
 });
