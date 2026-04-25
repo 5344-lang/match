@@ -109,7 +109,10 @@ document.getElementById('login-btn').addEventListener('click', () => {
     .catch(() => alert("로그인 실패. 아이디와 비밀번호를 확인해주세요."));
 });
 document.getElementById('logout-btn').addEventListener('click', () => { auth.signOut(); location.reload(); });
-document.getElementById('admin-link-btn').addEventListener('click', () => showSection('admin'));
+document.getElementById('admin-link-btn').addEventListener('click', () => {
+  showSection('admin');
+  goToAdminStep(currentAdminStep);
+});
 
 // 6. 계정 탈퇴
 document.getElementById('withdraw-btn').addEventListener('click', async () => {
@@ -248,16 +251,17 @@ document.getElementById('waitroom-participation-toggle').addEventListener('chang
 // 11. 전역 설정 실시간 감시
 function listenToGlobalSettings() {
   db.collection('settings').doc('global').onSnapshot(doc => {
-    if (!doc.exists) { updateWaitroomUI(); showWaitroomArea('waitroom-header'); return; }
-    const data = doc.data();
-    globalSettings = data;
-
     // 🌟 홈화면 이동 버그 수정: 관리자가 대시보드를 보고 있으면 화면 전환 하지 않음
     if (myUserData?.isAdmin && sections.admin.style.display === 'block') {
+      if (doc.exists) globalSettings = doc.data();
       startAdminRealtimeListeners();
       loadAdminData();
       return;
     }
+
+    if (!doc.exists) { updateWaitroomUI(); showWaitroomArea('waitroom-header'); return; }
+    const data = doc.data();
+    globalSettings = data;
 
     // 관리자 단계 초기화 (첫 로드 시에만)
     if (myUserData?.isAdmin && !adminStepInitialized) {
