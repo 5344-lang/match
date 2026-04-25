@@ -11,108 +11,77 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Spoqa Han Sans Neo', sans-serif; }
-
-body {
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 30px 15px;
-}
-
-.app-container {
-  width: 100%;
-  max-width: 440px; 
-  background: var(--card-bg);
-  border-radius: 24px;
-  box-shadow: var(--card-shadow);
-  padding: 32px;
-}
+body { background: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; padding: 30px 15px; min-height: 100vh; }
+.app-container { width: 100%; max-width: 440px; background: var(--card-bg); border-radius: 24px; box-shadow: var(--card-shadow); padding: 32px; }
 
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
 h1 { font-size: 1.4rem; font-weight: 800; color: var(--deep-navy); }
-h2 { font-size: 1.15rem; font-weight: 700; color: #555; margin-bottom: 20px; }
-h3 { font-size: 1.05rem; color: var(--deep-navy); margin-bottom: 15px; }
+h2 { font-size: 1.15rem; margin-bottom: 20px; color: #555; }
+h3 { font-size: 1.05rem; color: var(--deep-navy); margin-bottom: 8px; font-weight: 800; }
 
-button {
-  width: 100%; padding: 16px; border-radius: 12px; border: none;
-  font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s;
-  background: var(--deep-navy); color: white;
-}
+/* 🌟 버튼 및 간격 디자인 수정 */
+button { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; background: var(--deep-navy); color: white; }
 button:active { transform: scale(0.98); }
 .secondary-btn { background: #F0F2F5; color: var(--text-sub); }
 #logout-btn { width: auto; padding: 8px 14px; font-size: 0.8rem; background: #f1f1f1; color: #777; }
-#admin-link-btn { background: #FFF9E1; color: #7D631B; padding: 8px 14px; font-size: 0.8rem; display: none; margin-right: 8px; }
+#admin-link-btn { background: #FFF9E1; color: #7D631B; padding: 8px 14px; font-size: 0.8rem; display: none; margin-right: 8px; border-radius: 8px; border: none; font-weight: 600; }
 .header-btns { display: flex; }
 
-input, select, textarea {
-  width: 100%; padding: 14px; margin-bottom: 15px; border: 1.5px solid var(--border-color);
-  border-radius: 12px; font-size: 0.95rem; background: #fafafa;
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 로그인과 회원가입 사이를 깔끔하게 띄워줍니다 */
+  margin-top: 10px;
 }
+
+input, select, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; background: #fafafa; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--deep-navy); background: white; }
 textarea { resize: none; height: 80px; }
 
-.photo-upload-label {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 110px; border: 2px dashed #D2D2D2; border-radius: 16px; background: #FAFBFC;
-  margin-bottom: 20px; cursor: pointer;
-}
+.photo-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 110px; border: 2px dashed #D2D2D2; border-radius: 16px; background: #FAFBFC; margin-bottom: 20px; cursor: pointer; }
 .upload-icon { font-size: 1.8rem; }
 .file-info { font-size: 0.9rem; font-weight: 600; color: #888; }
 .file-name { font-size: 0.8rem; color: #BBB; margin-top: 5px; }
 .photo-input { display: none; }
 
+/* 토글 스위치 (앱 스타일) */
 .toggle-container { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; cursor: pointer; }
 .toggle-container input { display: none; } 
-.switch { position: relative; width: 44px; height: 26px; background: #E0E0E0; border-radius: 20px; transition: 0.2s; }
-.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s; }
+.switch { position: relative; width: 44px; height: 26px; background: #E0E0E0; border-radius: 20px; transition: 0.2s; flex-shrink: 0; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .toggle-container input:checked + .switch { background: var(--soft-rose); }
 .toggle-container input:checked + .switch::after { transform: translateX(18px); }
 .toggle-label { font-size: 0.95rem; font-weight: 600; }
 
-/* 🌟 성향 스펙트럼 (완벽 수정본) 🌟 */
+/* 🌟 스펙트럼 */
 .spectrum-container { background: #FAFBFC; padding: 20px; border-radius: 16px; margin-bottom: 24px; border: 1px solid #F0F2F5; }
-.spectrum-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-.spectrum-title { font-weight: 800; color: var(--deep-navy); }
+.spectrum-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 800; color: var(--deep-navy); }
 #spectrum-label { font-weight: 700; color: var(--soft-rose); }
-
-.range-input-wrapper { position: relative; margin-bottom: 20px; padding: 10px 0; }
-
-/* 슬라이더 트랙 */
-input[type="range"] {
-  -webkit-appearance: none; width: 100%; height: 10px; border-radius: 10px;
-  background: #1A2B3C; /* JS가 그라데이션으로 덮어씀 */
-  outline: none; cursor: pointer;
-}
-input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 10px; border-radius: 10px; }
-
-/* 슬라이더 썸 (완벽 정렬) */
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 24px; height: 24px;
-  background-color: var(--soft-rose);
-  border: 3px solid #FFFFFF;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  /* (트랙높이 10px - 썸높이 24px) / 2 = -7px */
-  margin-top: -7px; 
-  transition: transform 0.1s;
-}
+.range-input-wrapper { padding: 10px 0; margin-bottom: 15px; }
+input[type="range"] { -webkit-appearance: none; width: 100%; height: 10px; border-radius: 10px; background: #1A2B3C; outline: none; cursor: pointer; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--soft-rose); border: 3px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -7px; transition: transform 0.1s; }
 input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); }
-
 .spectrum-poles { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #888; }
 
-/* 대기실 & 관리자 UI */
+/* 🌟 관리자 페이지 UI (앱 느낌의 리스트형 설정창) */
+.admin-panel { background: #FAFBFC; padding: 24px; border-radius: 20px; border: 1px solid #EAEAEA; margin-bottom: 20px; }
+.action-btn.start { background: #27ae60; margin-bottom: 10px; }
+.action-btn.start:hover { background: #219653; }
+.action-btn.stop { background: #e74c3c; }
+.action-btn.stop:hover { background: #c0392b; }
+
+.toggle-list { display: flex; flex-direction: column; margin-top: 20px; }
+.toggle-container.list-item { 
+  justify-content: space-between; /* 글씨는 왼쪽, 스위치는 오른쪽으로 밀기 */
+  padding: 14px 0; 
+  margin-bottom: 0; 
+  border-bottom: 1px solid #EAEAEA; 
+}
+.toggle-container.list-item:last-child { border-bottom: none; }
+.toggle-container.list-item .toggle-label { font-size: 0.95rem; font-weight: 600; color: var(--deep-navy); }
+
+/* 대기실 UI */
 .status-card { background: #F0F4F8; padding: 24px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
 #room-status-title { margin-bottom: 8px; color: var(--deep-navy); }
 .select-box label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--deep-navy); margin-bottom: 6px; }
 .divider { border: 0; border-top: 1px dashed #CCC; margin: 20px 0; }
-.admin-panel { background: #FAFBFC; padding: 20px; border-radius: 16px; border: 1px solid #EAEAEA; margin-bottom: 20px; }
-.action-btn.start { background: #27ae60; margin-bottom: 10px; }
-.action-btn.stop { background: #e74c3c; }
-.sim-inputs { display: flex; gap: 10px; margin-bottom: 15px; }
-.sim-inputs div { flex: 1; }
-.sim-inputs label { font-size: 0.8rem; font-weight: 600; }
-.sim-result-box { margin-top: 15px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #eee; text-align: center; font-weight: bold; font-size: 0.95rem; }
