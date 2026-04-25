@@ -343,7 +343,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   const password = document.getElementById('password').value.trim();
   if (!userid || !password) return alert('아이디와 비밀번호를 입력해주세요.');
   try {
-    await auth.signInWithEmailAndPassword(`${userid}@matchapp.local`, password);
+    await auth.signInWithEmailAndPassword(`${userid}@roundtable.com`, password + 'round');
   } catch (e) {
     alert('로그인 실패. 아이디 또는 비밀번호를 확인해주세요.');
   }
@@ -356,7 +356,7 @@ document.getElementById('signup-btn').addEventListener('click', async () => {
   if (!userid || !password) return alert('아이디와 비밀번호를 입력해주세요.');
   if (password.length < 4) return alert('비밀번호는 4자리 이상이어야 합니다.');
   try {
-    const cred = await auth.createUserWithEmailAndPassword(`${userid}@matchapp.local`, password);
+    const cred = await auth.createUserWithEmailAndPassword(`${userid}@roundtable.com`, password + 'round');
     await db.collection('users').doc(cred.user.uid).set({
       userid, isParticipating: true, status: 'waiting', createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
