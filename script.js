@@ -96,20 +96,37 @@ btns.adminLink.addEventListener('click', () => showSection('admin'));
 btns.logout.addEventListener('click', () => { auth.signOut(); location.reload(); });
 
 // 🌟 회원가입 & 로그인
-btns.signup.addEventListener('click', () => {
-  const id = document.getElementById('userid').value;
-  const pw = document.getElementById('password').value;
-  if (!id || !pw) return alert("아이디와 비밀번호를 입력해주세요.");
-  auth.createUserWithEmailAndPassword(id + "@roundtable.com", pw)
-    .then(() => alert("🎉 가입 성공! 프로필을 설정해주세요."))
-    .catch(err => alert("에러: 이미 있는 아이디거나 비밀번호가 6자리 미만입니다."));
+signupBtn.addEventListener('click', () => {
+  const userid = document.getElementById('userid').value;
+  const rawPassword = document.getElementById('password').value; // 실제 입력값
+
+  if (rawPassword.length < 4) {
+    alert("🔐 비밀번호는 최소 4자리 이상으로 설정해주세요!");
+    return;
+  }
+
+  const fakeEmail = userid + "@roundtable.com"; 
+  // 💡 4자리 뒤에 몰래 "round"를 붙여서 10자리로 만듦
+  const paddedPassword = rawPassword + "round"; 
+
+  auth.createUserWithEmailAndPassword(fakeEmail, paddedPassword)
+    .then(() => alert("🎉 가입 성공!"))
+    .catch(err => {
+      if (err.code === 'auth/weak-password') alert("🔐 4자리 이상 입력해주세요.");
+      else alert("에러: " + err.message);
+    });
 });
 
-btns.login.addEventListener('click', () => {
-  const id = document.getElementById('userid').value;
-  const pw = document.getElementById('password').value;
-  auth.signInWithEmailAndPassword(id + "@roundtable.com", pw)
-    .catch(() => alert("로그인 실패: 정보를 확인해주세요."));
+loginBtn.addEventListener('click', () => {
+  const userid = document.getElementById('userid').value;
+  const rawPassword = document.getElementById('password').value;
+  
+  const fakeEmail = userid + "@roundtable.com"; 
+  // 💡 로그인할 때도 똑같이 뒤에 "round"을 붙여서 인증 요청
+  const paddedPassword = rawPassword + "round"; 
+
+  auth.signInWithEmailAndPassword(fakeEmail, paddedPassword)
+    .catch(() => alert("로그인 실패: 아이디나 비밀번호를 확인해주세요."));
 });
 
 // 🌟 프로필 저장 (96년생 나이 제한 컷!)
@@ -122,7 +139,7 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
     let fullYear = inputYear < 100 ? (inputYear > 24 ? 1900 + inputYear : 2000 + inputYear) : inputYear;
 
     if (fullYear < 1996) {
-      alert("⚠️ 죄송합니다! 96년생(또는 그 이후 출생자)부터 참여 가능합니다.");
+      alert("⚠️ 죄송합니다! 96년생(또는 그 이전 출생자)부터 참여 가능합니다.");
       return; 
     }
 
