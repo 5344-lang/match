@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 💘</title>
+  <title>Secret Match 0.1 💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -189,9 +189,149 @@
     </section>
 
     <section id="admin-section" style="display: none;">
-       <h2>🛠 관리자 모드</h2>
-       <div id="admin-participant-list" class="admin-panel"></div>
-       <button class="secondary-btn" onclick="location.reload()">새로고침</button>
+      <h2>🛠 관리자 대시보드</h2>
+
+      <div class="admin-step-indicator">
+        <div class="step-item" onclick="goToAdminStep(0)">
+          <div class="step-circle active" id="step-circle-0">1</div>
+          <div class="step-label">프로필 점검</div>
+        </div>
+        <div class="step-connector" id="step-conn-0"></div>
+        <div class="step-item" onclick="goToAdminStep(1)">
+          <div class="step-circle" id="step-circle-1">2</div>
+          <div class="step-label">매칭 진행</div>
+        </div>
+        <div class="step-connector" id="step-conn-1"></div>
+        <div class="step-item" onclick="goToAdminStep(2)">
+          <div class="step-circle" id="step-circle-2">3</div>
+          <div class="step-label">매칭 검토</div>
+        </div>
+        <div class="step-connector" id="step-conn-2"></div>
+        <div class="step-item" onclick="goToAdminStep(3)">
+          <div class="step-circle" id="step-circle-3">4</div>
+          <div class="step-label">결과 발표</div>
+        </div>
+      </div>
+
+      <!-- Step 0: 프로필 점검 -->
+      <div id="admin-step-0">
+        <div class="admin-panel">
+          <h3>🔍 프로필 점검 기간 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">참여자들이 프로필을 확인하고 참여 여부를 확정하는 기간을 제어합니다.</p>
+          <button id="admin-profile-check-start-btn" class="action-btn start">프로필 점검 기간 시작</button>
+          <button id="admin-profile-check-end-btn" class="action-btn stop">프로필 점검 기간 종료 →</button>
+          <div id="profile-check-confirm-status" style="margin-top:10px; font-size:0.85rem; color:#555;"></div>
+          <div style="margin-top:12px; border-top:1px solid #eee; padding-top:12px;">
+            <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">📢 전광판 메시지 <span style="font-weight:400;">(비워두면 단계별 자동 표시)</span></p>
+            <input type="text" id="ticker-input" placeholder="비우면 자동 / 직접 입력하면 덮어쓰기" style="margin-bottom:8px;">
+            <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">📅 매칭 회차 이름</p>
+            <input type="text" id="match-title-input" placeholder="ex) 26년 5월 매칭" style="margin-bottom:8px;">
+            <button id="apply-settings-btn" style="background:#34495e; padding:10px;">설정 적용하기</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>👥 참여자 현황 및 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">회원들의 참여 상태를 확인하고 강제 변경합니다.</p>
+          <div id="admin-participant-list" class="requests-list" style="max-height:150px; background:#fdfdfd; margin-bottom:10px;"></div>
+          <div style="display:flex; gap:5px; align-items:center; background:#eee; padding:10px; border-radius:10px;">
+            <select id="manage-part-user" style="margin-bottom:0; flex:2; padding:10px; font-size:0.85rem;"><option value="">유저 선택</option></select>
+            <select id="manage-part-status" style="margin-bottom:0; flex:1.2; padding:10px; font-size:0.85rem;">
+              <option value="true">참여 O</option><option value="false">참여 X</option>
+            </select>
+            <button id="manage-part-btn" style="padding:10px; flex:1; background:#34495e; font-size:0.85rem;">변경</button>
+          </div>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn" onclick="goToAdminStep(1)">다음 단계 →</button>
+        </div>
+      </div>
+
+      <!-- Step 1: 매칭 진행 -->
+      <div id="admin-step-1" style="display:none;">
+        <div class="admin-panel">
+          <h3>🚀 매칭 시스템 제어</h3>
+          <button id="admin-start-btn" class="action-btn start">매칭 시작하기</button>
+          <button id="admin-stop-btn" class="action-btn stop">매칭 종료 →</button>
+          <div class="toggle-list" style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+            <label class="toggle-container list-item"><span class="toggle-label">2지망 활성화</span><input type="checkbox" id="toggle-pref2" checked><span class="switch"></span></label>
+            <label class="toggle-container list-item"><span class="toggle-label">3지망 활성화</span><input type="checkbox" id="toggle-pref3" checked><span class="switch"></span></label>
+            <label class="toggle-container list-item"><span class="toggle-label">비선호 활성화</span><input type="checkbox" id="toggle-dispref" checked><span class="switch"></span></label>
+            <button id="apply-toggles-btn" style="background:#34495e; padding:10px; margin-top:10px;">옵션 적용하기</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>⏳ 미제출자 현황 (실시간)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">아직 제출하지 않은 참여자의 현재 고민 상태를 보여줍니다.</p>
+          <div id="admin-waiting-list" class="requests-list" style="max-height:150px; background:#fffcfc;"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>📋 최근 제출 로그</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">시스템이 잘 작동하는지 확인용입니다.</p>
+          <div id="admin-requests-list" class="requests-list" style="margin-top:10px;"></div>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(0)">← 이전</button>
+          <button class="step-nav-btn" onclick="goToAdminStep(2)">다음 단계 →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: 매칭 검토 -->
+      <div id="admin-step-2" style="display:none;">
+        <div class="admin-panel">
+          <h3>🔬 매칭 검토 (자동 제안)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">시스템이 지망 순위에 따라 커플을 한 쌍씩 제안합니다.</p>
+          <button id="start-auto-match-btn" style="background:#8e44ad; margin-bottom:15px;">매칭 제안 받기 시작</button>
+          <div id="sim-result-box" style="display:none; padding:15px; background:#f4f7f6; border-radius:12px; text-align:center;">
+            <h4 style="margin-bottom:10px; color:var(--deep-navy);">제안된 커플 💘</h4>
+            <div id="sim-team-members" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:12px;"></div>
+            <div id="sim-match-info" style="padding:12px; background:white; border-radius:10px; font-size:0.88rem; line-height:1.7; text-align:left;"></div>
+            <div id="sim-warning-msg" style="font-weight:bold; margin-top:10px;"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+              <button id="confirm-match-btn" style="background:#27ae60; flex:1; padding:12px;">💘 커플 확정</button>
+              <button id="hold-match-btn" style="background:#f39c12; flex:1; padding:12px;">⏸ 일단 보류</button>
+            </div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>💘 확정된 커플 목록</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">⚠️ 표시 = 카카오링크 없음</p>
+          <div id="admin-matched-list" class="requests-list" style="max-height:200px; background:#fff0f5;"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>🤝 수동 매칭</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">자동 제안으로 매칭되지 않은 경우 직접 지정합니다.</p>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+            <select id="manual-a-user" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">A 선택</option></select>
+            <span style="font-size:1.5rem; flex-shrink:0;">💘</span>
+            <select id="manual-b-user" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">B 선택</option></select>
+          </div>
+          <button id="manual-match-btn" style="background:#8e44ad;">수동 매칭 확정</button>
+        </div>
+        <div class="admin-panel">
+          <h3>⏸ 보류자 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">보류 중인 유저: <span id="held-count">0</span>명</p>
+          <button id="reset-held-btn" class="secondary-btn">보류자를 자동제안에 다시 포함</button>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(1)">← 이전</button>
+          <button class="step-nav-btn" onclick="goToAdminStep(3)">결과 발표 단계로 →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: 결과 발표 -->
+      <div id="admin-step-3" style="display:none;">
+        <div class="admin-panel">
+          <h3>📢 결과 발표</h3>
+          <p id="final-match-summary" style="font-size:1rem; color:var(--deep-navy); font-weight:800; margin-bottom:12px;">확정된 커플: 0쌍</p>
+          <div id="admin-matched-list-final" class="requests-list" style="max-height:250px; background:#fff0f5; margin-bottom:20px;"></div>
+          <button id="publish-results-btn" style="background:#2980b9; margin-bottom:10px;">전체 결과 발표하기 📢</button>
+          <button id="reset-all-btn" style="background:#e74c3c;">🚨 모든 유저 매칭 완전 초기화</button>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(2)">← 이전</button>
+        </div>
+      </div>
+
     </section>
   </div>
   
