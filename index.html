@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 💘</title>
+  <title>Secret Match 1💘</title>
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -24,7 +24,7 @@
       <h2>로그인 및 시작하기</h2>
       <div class="input-card">
         <input type="text" id="userid" placeholder="아이디" required>
-        <input type="password" id="password" placeholder="비밀번호" required>
+        <input type="password" id="password" placeholder="비밀번호 (4자리 이상)" required>
       </div>
       <div class="auth-buttons">
         <button id="login-btn">로그인</button>
@@ -95,26 +95,45 @@
         <div class="select-box" id="pref-2-box"><label>2지망</label><select id="pref-2"></select></div>
         <div class="select-box" id="pref-3-box"><label>3지망</label><select id="pref-3"></select></div>
         <hr class="divider">
-        <div class="select-box" id="dispref-1-box"><label>이 사람은 안돼요</label><select id="dispref-1"></select></div>
+        <div class="select-box" id="dispref-1-box"><label>이 사람은 안돼요 (비선호)</label><select id="dispref-1"></select></div>
         <button id="submit-selection-btn">지망 제출하기</button>
       </div>
     </section>
 
     <section id="admin-section" style="display: none;">
       <h2>🛠 최고 관리자 대시보드</h2>
+      
       <div class="admin-panel">
-        <h3>매칭 시스템 제어</h3>
+        <h3>🚀 매칭 시스템 제어</h3>
+        <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">참여자들의 지망 선택을 열거나 닫습니다.</p>
         <button id="admin-start-btn" class="action-btn start">매칭 시작 (선택창 열기)</button>
         <button id="admin-stop-btn" class="action-btn stop">매칭 종료 (선택창 닫기)</button>
+      </div>
+      
+      <div class="admin-panel">
+        <h3>⚙️ 선택창 상세 설정</h3>
+        <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">매칭 시작 전, 사용자에게 보여질 칸을 설정합니다.</p>
         
-        <div class="admin-options">
-          <p>선택창 옵션 설정</p>
-          <label class="admin-check"><input type="checkbox" id="toggle-pref2" checked> 2지망 활성화</label>
-          <label class="admin-check"><input type="checkbox" id="toggle-pref3" checked> 3지망 활성화</label>
-          <label class="admin-check"><input type="checkbox" id="toggle-dispref" checked> 비선호 1 활성화</label>
+        <div class="toggle-list">
+          <label class="toggle-container list-item">
+            <span class="toggle-label">2지망 입력 활성화</span>
+            <input type="checkbox" id="toggle-pref2" checked>
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-container list-item">
+            <span class="toggle-label">3지망 입력 활성화</span>
+            <input type="checkbox" id="toggle-pref3" checked>
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-container list-item">
+            <span class="toggle-label">비선호 1 입력 활성화</span>
+            <input type="checkbox" id="toggle-dispref" checked>
+            <span class="switch"></span>
+          </label>
         </div>
       </div>
-      <button onclick="location.reload()" class="secondary-btn">메인으로 돌아가기</button>
+
+      <button onclick="location.reload()" class="secondary-btn" style="margin-top: 10px;">메인으로 돌아가기</button>
     </section>
   </div>
   <script src="script.js"></script>
