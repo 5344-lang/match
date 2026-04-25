@@ -117,3 +117,13 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
       .catch(error => console.error("Error writing document: ", error));
   }
 });
+
+// 본인이 직접 비밀번호를 바꾸는 기능 (예시 코드)
+const user = auth.currentUser;
+const newPassword = "새로운비밀번호1234";
+
+user.updatePassword(newPassword).then(() => {
+  alert("비밀번호가 성공적으로 변경되었습니다!");
+}).catch((error) => {
+  alert("비밀번호 변경 실패: " + error.message);
+});
