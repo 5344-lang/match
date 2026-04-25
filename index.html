@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 1.2💘</title>
+  <title>Secret Match 💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -241,6 +241,12 @@
     <section id="admin-section" style="display: none;">
       <h2>🛠 관리자 대시보드</h2>
 
+      <div class="admin-nav-tabs">
+        <button class="admin-nav-tab active" id="admin-tab-match" onclick="switchAdminView('match')">📊 매칭 관리</button>
+        <button class="admin-nav-tab" id="admin-tab-members" onclick="switchAdminView('members')">👥 전체회원 관리</button>
+      </div>
+
+      <div id="admin-match-view">
       <div class="admin-step-indicator">
         <div class="step-item" onclick="goToAdminStep(0)">
           <div class="step-circle active" id="step-circle-0">1</div>
@@ -429,6 +435,33 @@
         </div>
         <div class="step-nav-bottom">
           <button class="step-nav-btn secondary" onclick="goToAdminStep(2)">← 이전</button>
+        </div>
+      </div>
+
+      </div><!-- /admin-match-view -->
+
+      <!-- 전체회원 관리 -->
+      <div id="admin-members-panel" style="display:none;">
+        <div class="admin-panel">
+          <h3>👥 전체회원 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:12px;">가입된 모든 회원을 조회하고 관리합니다.</p>
+          <input type="text" id="member-search" placeholder="닉네임 검색..." oninput="renderAllMembersPanel()" style="margin-bottom:8px;">
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <select id="member-filter-status" onchange="renderAllMembersPanel()" style="flex:1; margin-bottom:0; padding:10px; font-size:0.82rem;">
+              <option value="">전체 상태</option>
+              <option value="waiting">대기(waiting)</option>
+              <option value="submitted">제출(submitted)</option>
+              <option value="matched">매칭(matched)</option>
+              <option value="held">보류(held)</option>
+            </select>
+            <select id="member-filter-part" onchange="renderAllMembersPanel()" style="flex:1; margin-bottom:0; padding:10px; font-size:0.82rem;">
+              <option value="">참여여부 전체</option>
+              <option value="yes">참여O</option>
+              <option value="no">불참</option>
+            </select>
+          </div>
+          <p id="all-members-count" style="font-size:0.8rem; color:#aaa; margin-bottom:10px;"></p>
+          <div id="all-members-list" class="requests-list" style="max-height:500px;"></div>
         </div>
       </div>
 
