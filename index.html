@@ -101,11 +101,20 @@
 
     <section id="waitroom-section" style="display: none;">
       
-      <div class="status-card" id="waitroom-header" style="display:none; padding: 35px 20px;">
+<div class="status-card" id="waitroom-header" style="display:none; padding: 35px 20px;">
         <p id="room-match-label" style="font-size:1rem; color:var(--deep-navy); font-weight:700; margin-bottom:8px;"></p>
         <h2 id="room-status-title" style="font-size: 1.4rem; margin-bottom: 15px;">⏳ 아직 매칭 시작 전입니다.</h2>
-        <p id="room-status-desc" style="color: #777; line-height: 1.6; margin-bottom: 25px;">기다려주세요.</p>
-        <button id="waitroom-mypage-btn" class="secondary-btn" style="transition:0.3s; font-weight:800; border:none;">내 프로필 점검하기</button>
+        <p id="room-status-desc" style="color: #777; line-height: 1.6; margin-bottom: 5px;">기다려주세요.</p>
+        
+        <div style="display: flex; justify-content: center; margin-bottom: 25px;">
+          <label class="toggle-container" style="margin-bottom: 0;">
+            <input type="checkbox" id="waitroom-participation-toggle">
+            <span class="switch"></span>
+            <span class="toggle-label" style="font-size: 0.9rem; font-weight: 800;">이번 회차 참여</span>
+          </label>
+        </div>
+
+        <button id="waitroom-mypage-btn" class="secondary-btn" style="transition:0.3s; font-weight:800; border:none; color: white !important;">내 프로필 점검하기</button>
       </div>
 
       <div id="selection-area" style="display: none;">
