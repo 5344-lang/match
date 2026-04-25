@@ -682,7 +682,10 @@ document.getElementById('start-auto-match-btn').addEventListener('click', () => 
     const reqA = requestsData[A.id];
     if(!reqA || reqA.isDraft) return;
 
-    let targetId = [reqA.pref1, reqA.pref2, reqA.pref3].find(id => id && adminUsersData[id]?.status === 'submitted' && !adminUsersData[id].isProcessed);
+    const aHistory = adminUsersData[A.id]?.matchHistory || [];
+    let targetId = [reqA.pref1, reqA.pref2, reqA.pref3].find(id =>
+      id && adminUsersData[id]?.status === 'submitted' && !adminUsersData[id].isProcessed && !aHistory.includes(id)
+    );
     if(targetId) {
       let B = adminUsersData[targetId];
       A.isProcessed = true; B.isProcessed = true;
@@ -749,6 +752,8 @@ function showNextProposal() {
   if (!bRankOfA) cons.push(`⚠️ ${B.nickname}님이 ${A.nickname}님을 선택하지 않았음`);
   if (aDislikeB) cons.push(`🚨 ${A.nickname}님이 ${B.nickname}님을 비선호로 지정`);
   if (bDislikeA) cons.push(`🚨 ${B.nickname}님이 ${A.nickname}님을 비선호로 지정`);
+  const prevMatch = (A.matchHistory || []).includes(B.id) || (B.matchHistory || []).includes(A.id);
+  if (prevMatch) cons.push(`🔁 이전에 매칭된 적 있는 커플`);
 
   if (pros.length) { infoLines.push(''); pros.forEach(p => infoLines.push(p)); }
   if (cons.length) { infoLines.push(''); cons.forEach(c => infoLines.push(c)); }
@@ -757,6 +762,7 @@ function showNextProposal() {
 
   let msg = '', color = '#333';
   if (aDislikeB || bDislikeA) { msg = '🚨 비선호 대상이 포함된 매칭입니다!'; color = '#e74c3c'; }
+  else if (prevMatch) { msg = '🔁 이전에 매칭된 적 있는 커플입니다.'; color = '#8e44ad'; }
   else if (aRankOfB && bRankOfA) { msg = '💕 상호 지망 매칭!'; color = '#27ae60'; }
   else if (!aRankOfB || !bRankOfA) { msg = '⚠️ 일방적 매칭입니다.'; color = '#e67e22'; }
   document.getElementById('sim-warning-msg').innerHTML = msg;
@@ -788,7 +794,12 @@ document.getElementById('reset-held-btn').addEventListener('click', () => {
 document.getElementById('reset-all-btn').addEventListener('click', () => {
   if(confirm("정말 모든 유저를 초기화합니까?")) {
     db.collection('users').get().then(snap => {
-      snap.forEach(doc => db.collection('users').doc(doc.id).update({ status: 'waiting', partnerId: null, isProfileConfirmed: false }));
+      snap.forEach(doc => {
+        const u = doc.data();
+        const updates = { status: 'waiting', partnerId: null, isProfileConfirmed: false };
+        if (u.partnerId) updates.matchHistory = firebase.firestore.FieldValue.arrayUnion(u.partnerId);
+        db.collection('users').doc(doc.id).update(updates);
+      });
       db.collection('settings').doc('global').update({ isMatchingActive: false, resultsPublished: false, isProfileCheckActive: false, adminStep: 0 });
       adminStepInitialized = false;
     });
