@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 0.1 💘</title>
+  <title>Secret Match 💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -166,6 +166,21 @@
         <button id="check-result-btn" class="heart-pulse-btn">💖</button>
         <p class="pulse-text">결과 확인하기!<br>눌러주세요!</p>
       </div>
+
+      <div id="profile-check-area" style="display: none;">
+        <div id="profile-confirmed-badge" style="display:none; background:#e8f8f0; padding:24px; border-radius:16px; text-align:center; margin-bottom:15px;">
+          <h3 style="color:#27ae60; font-size:1.3rem;">✅ 프로필 점검 완료!</h3>
+          <p style="color:#555; margin-top:8px; line-height:1.6;">이번 매칭 참여 의사가 확정되었습니다.<br>매칭을 기다려주세요.</p>
+        </div>
+        <div id="profile-not-confirmed-area">
+          <div class="status-card" style="margin-bottom:15px;">
+            <h3 style="color:var(--deep-navy); margin-bottom:8px;">🔍 프로필 점검 기간</h3>
+            <p style="color:#777; line-height:1.6; margin-bottom:20px;">프로필을 확인하고<br>이번 매칭 참여 여부를 확정해주세요.</p>
+            <button id="check-my-profile-btn" style="margin-bottom:10px;">내 프로필 확인/수정하기</button>
+            <button id="confirm-profile-btn" style="background:var(--soft-rose);">✅ 프로필 점검 완료하기</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="result-section" style="display: none;">
@@ -214,7 +229,7 @@
       </div>
 
       <!-- Step 0: 프로필 점검 -->
-      <div id="admin-step-0">
+      <div id="admin-step-0" style="display:none;">
         <div class="admin-panel">
           <h3>🔍 프로필 점검 기간 관리</h3>
           <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">참여자들이 프로필을 확인하고 참여 여부를 확정하는 기간을 제어합니다.</p>
