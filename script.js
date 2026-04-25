@@ -149,8 +149,8 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
     let inputYear = parseInt(document.getElementById('birthYear').value);
     let fullYear = inputYear < 100 ? (inputYear > 24 ? 1900 + inputYear : 2000 + inputYear) : inputYear;
 
-    if (fullYear < 1996) {
-      alert("⚠️ 죄송합니다! 96년생(또는 그 이후 출생자)부터 참여 가능합니다.");
+    if (fullYear > 1996) {
+      alert("⚠️ 죄송합니다! 96년생(또는 그 이전 출생자)부터 참여 가능합니다.");
       return; 
     }
 
