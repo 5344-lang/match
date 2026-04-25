@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 💘</title>
+  <title>Secret Match 1.1💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -100,19 +100,39 @@
     </section>
 
     <section id="waitroom-section" style="display: none;">
-      <div class="status-card" id="waitroom-header" style="display:none; padding: 35px 20px;">
-        <p id="room-match-label" style="font-size:1rem; color:var(--deep-navy); font-weight:700; margin-bottom:8px;"></p>
-        <h2 id="room-status-title" style="font-size: 1.4rem; margin-bottom: 15px;">⏳ 아직 매칭 시작 전입니다.</h2>
+      <div class="status-card" id="waitroom-header" style="display:none; padding: 25px 20px;">
+        <p id="room-match-label" style="font-size:1rem; color:var(--deep-navy); font-weight:700; margin-bottom:14px;"></p>
+
+        <div id="home-step-guide">
+          <div class="hstep-item" id="hstep-0"><div class="hstep-circle">1</div><div class="hstep-label">참여 결정</div></div>
+          <div class="hstep-connector" id="hstep-conn-0"></div>
+          <div class="hstep-item" id="hstep-1"><div class="hstep-circle">2</div><div class="hstep-label">프로필 점검</div></div>
+          <div class="hstep-connector" id="hstep-conn-1"></div>
+          <div class="hstep-item" id="hstep-2"><div class="hstep-circle">3</div><div class="hstep-label">매칭 진행</div></div>
+          <div class="hstep-connector" id="hstep-conn-2"></div>
+          <div class="hstep-item" id="hstep-3"><div class="hstep-circle">4</div><div class="hstep-label">결과 발표</div></div>
+        </div>
+
+        <h2 id="room-status-title" style="font-size:1.3rem; margin:18px 0 10px;">⏳ 아직 매칭 시작 전입니다.</h2>
+
+        <div id="home-status-badges" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:14px;">
+          <span id="badge-participating" class="home-badge"></span>
+          <span id="badge-confirmed" class="home-badge" style="display:none;"></span>
+          <span id="badge-submitted-home" class="home-badge" style="display:none;"></span>
+        </div>
+
         <p id="room-status-desc" style="color: #777; line-height: 1.6; margin-bottom: 20px;">기다려주세요.</p>
-        
-        <div style="display: flex; justify-content: center; margin-bottom: 25px;">
+
+        <div id="home-toggle-wrapper" style="display:flex; justify-content:center; margin-bottom:20px;">
           <label class="toggle-container" style="margin-bottom: 0;">
             <input type="checkbox" id="waitroom-participation-toggle">
             <span class="switch"></span>
             <span class="toggle-label" style="font-size: 0.9rem; font-weight: 800;">이번 회차 참여</span>
           </label>
         </div>
-        <button id="waitroom-mypage-btn" class="secondary-btn" style="transition:0.3s; font-weight:800; border:none; color: white !important;">내 프로필 점검하기</button>
+        <button id="waitroom-mypage-btn" style="display:none; margin-bottom:8px; font-weight:800;">내 프로필 수정하기</button>
+        <button id="waitroom-profilecheck-btn" style="display:none; margin-bottom:8px; background:var(--soft-rose);">🔍 프로필 점검하러 가기</button>
+        <button id="waitroom-find-btn" style="display:none; background:var(--soft-rose); font-size:1.05rem; padding:16px;">💘 내 운명의 상대 찾기</button>
       </div>
 
       <div id="selection-area" style="display: none;">
@@ -236,6 +256,7 @@
           <button id="admin-profile-check-start-btn" class="action-btn start">프로필 점검 기간 시작</button>
           <button id="admin-profile-check-end-btn" class="action-btn stop">프로필 점검 기간 종료 →</button>
           <div id="profile-check-confirm-status" style="margin-top:10px; font-size:0.85rem; color:#555;"></div>
+          <div id="profile-unconfirmed-list" style="margin-top:8px; background:white; border:1px dashed #ffd1e5; border-radius:10px; padding:8px; max-height:110px; overflow-y:auto; font-size:0.82rem; color:#777; display:none;"></div>
           <div style="margin-top:12px; border-top:1px solid #eee; padding-top:12px;">
             <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">📢 전광판 메시지 <span style="font-weight:400;">(비워두면 단계별 자동 표시)</span></p>
             <input type="text" id="ticker-input" placeholder="비우면 자동 / 직접 입력하면 덮어쓰기" style="margin-bottom:8px;">
@@ -321,6 +342,27 @@
             <select id="manual-b-user" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">B 선택</option></select>
           </div>
           <button id="manual-match-btn" style="background:#8e44ad;">수동 매칭 확정</button>
+
+          <div id="manual-match-preview" style="display:none; margin-top:15px; padding:15px; background:#f4f7f6; border-radius:14px;">
+            <h4 style="color:var(--deep-navy); margin-bottom:12px; text-align:center; font-size:0.95rem;">🤖 AI 관계 분석</h4>
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:14px;">
+              <div id="manual-card-a" style="background:white; padding:12px; border-radius:12px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.06); flex:1; max-width:120px; transition:0.3s;">
+                <div style="font-size:2rem;" id="manual-card-a-emoji">👤</div>
+                <div style="font-weight:800; font-size:0.85rem; margin:4px 0;" id="manual-card-a-name">-</div>
+                <div style="font-size:0.72rem; color:#888;" id="manual-card-a-info">-</div>
+                <div style="font-size:0.7rem; margin-top:5px; color:var(--soft-rose); font-weight:600;" id="manual-card-a-spec"></div>
+              </div>
+              <div style="font-size:2rem; flex-shrink:0; color:var(--soft-rose);">💘</div>
+              <div id="manual-card-b" style="background:white; padding:12px; border-radius:12px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.06); flex:1; max-width:120px; transition:0.3s; border:2px solid var(--soft-rose);">
+                <div style="font-size:2rem;" id="manual-card-b-emoji">👤</div>
+                <div style="font-weight:800; font-size:0.85rem; margin:4px 0;" id="manual-card-b-name">-</div>
+                <div style="font-size:0.72rem; color:#888;" id="manual-card-b-info">-</div>
+                <div style="font-size:0.7rem; margin-top:5px; color:var(--soft-rose); font-weight:600;" id="manual-card-b-spec"></div>
+              </div>
+            </div>
+            <div id="manual-match-info" style="background:white; border-radius:10px; padding:12px; font-size:0.85rem; line-height:1.9;"></div>
+            <div id="manual-match-verdict" style="margin-top:10px; padding:10px; border-radius:10px; font-size:0.88rem; font-weight:700; text-align:center;"></div>
+          </div>
         </div>
         <div class="admin-panel">
           <h3>⏸ 보류자 관리</h3>
