@@ -660,6 +660,14 @@ let userMap = {}; let adminUsersData = {}; let requestsData = {}; let proposedQu
 let adminUsersSnap = null; let adminReqSnap = null;
 let adminRenderTimer = null; let adminListenersActive = false;
 
+window.switchAdminView = function(view) {
+  document.getElementById('admin-match-view').style.display = view === 'match' ? 'block' : 'none';
+  document.getElementById('admin-members-panel').style.display = view === 'members' ? 'block' : 'none';
+  document.getElementById('admin-tab-match').classList.toggle('active', view === 'match');
+  document.getElementById('admin-tab-members').classList.toggle('active', view === 'members');
+  if (view === 'members') renderAllMembersPanel();
+};
+
 window.goToAdminStep = function(n, skipConfirm) {
   if (!skipConfirm && adminStepInitialized && n < currentAdminStep) {
     const names = ['프로필 점검', '매칭 진행', '매칭 검토', '결과 발표'];
@@ -690,6 +698,108 @@ function startAdminRealtimeListeners() {
   db.collection('users').onSnapshot(snap => { adminUsersSnap = snap; scheduleAdminRender(); });
   db.collection('requests').onSnapshot(snap => { adminReqSnap = snap; scheduleAdminRender(); });
 }
+
+function renderAllMembersPanel() {
+  if (document.getElementById('admin-members-panel')?.style.display === 'none') return;
+  const searchVal = (document.getElementById('member-search')?.value || '').toLowerCase();
+  const statusFilter = document.getElementById('member-filter-status')?.value || '';
+  const partFilter = document.getElementById('member-filter-part')?.value || '';
+
+  const listEl = document.getElementById('all-members-list');
+  const countEl = document.getElementById('all-members-count');
+  if (!listEl) return;
+
+  const allMembers = Object.values(adminUsersData).filter(u => u.nickname);
+  const members = allMembers.filter(u => {
+    if (searchVal && !u.nickname.toLowerCase().includes(searchVal)) return false;
+    if (statusFilter && u.status !== statusFilter) return false;
+    if (partFilter === 'yes' && u.isParticipating === false) return false;
+    if (partFilter === 'no' && u.isParticipating !== false) return false;
+    return true;
+  });
+
+  if (countEl) countEl.innerText = `전체 ${allMembers.length}명 중 ${members.length}명 표시`;
+
+  if (members.length === 0) {
+    listEl.innerHTML = '<p style="color:#777; text-align:center; padding:20px;">검색 결과가 없습니다.</p>';
+    return;
+  }
+
+  const statusInfo = {
+    waiting:   { label: '대기',   color: '#95a5a6' },
+    submitted: { label: '제출',   color: '#3498db' },
+    matched:   { label: '매칭',   color: '#e91e8c' },
+    held:      { label: '보류',   color: '#e67e22' }
+  };
+
+  members.sort((a, b) => {
+    if (a.isAdmin !== b.isAdmin) return a.isAdmin ? -1 : 1;
+    return (a.nickname || '').localeCompare(b.nickname || '');
+  });
+
+  listEl.innerHTML = members.map(u => {
+    const si = statusInfo[u.status] || { label: u.status || '-', color: '#999' };
+    const partColor = u.isParticipating !== false ? '#27ae60' : '#e74c3c';
+    const partLabel = u.isParticipating !== false ? '참여O' : '불참';
+    const confColor = u.isProfileConfirmed ? '#27ae60' : '#ccc';
+    const confLabel = u.isProfileConfirmed ? '점검O' : '점검X';
+    const partner = u.partnerId ? (userMap[u.partnerId] || '?') : '';
+    const escNick = u.nickname.replace(/'/g, "\\'");
+
+    return `<div class="member-row">
+      <div class="member-main">
+        <span class="member-emoji">${u.emoji || '👤'}</span>
+        <div class="member-info">
+          <div class="member-name">${u.nickname}${u.isAdmin ? ' <span style="font-size:0.68rem;color:#e67e22;font-weight:700;background:#fff3e0;padding:1px 5px;border-radius:6px;">관리자</span>' : ''}</div>
+          <div class="member-sub">${u.birthYear ? (u.birthYear % 100) + '년생' : '-'} · ${u.city || '-'}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:3px; margin-top:4px;">
+            <span style="background:${si.color}22; color:${si.color}; border:1px solid ${si.color}55; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">${si.label}</span>
+            <span style="background:${partColor}22; color:${partColor}; border:1px solid ${partColor}55; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">${partLabel}</span>
+            <span style="background:${confColor}22; color:${confColor}; border:1px solid ${confColor}55; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">${confLabel}</span>
+            ${partner ? `<span style="background:#f3e5f5; color:#8e44ad; border:1px solid #d7aef0; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">💘${partner}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="member-actions">
+        <select onchange="adminChangeStatus('${u.id}', this.value, '${escNick}'); this.value=''" style="margin-bottom:0; font-size:0.72rem; padding:5px 6px; border-radius:8px; width:auto; border:1px solid #ddd; background:white; cursor:pointer;">
+          <option value="">상태▾</option>
+          <option value="waiting">대기</option>
+          <option value="submitted">제출</option>
+          <option value="held">보류</option>
+        </select>
+        <button onclick="adminTogglePart('${u.id}', '${escNick}', ${u.isParticipating !== false})" style="background:${partColor}; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">${u.isParticipating !== false ? '불참전환' : '참여전환'}</button>
+        ${!u.isAdmin ? `<button onclick="adminDeleteUser('${u.id}', '${escNick}')" style="background:#fdf0f0; color:#e74c3c; border:1px solid #f5c6c6; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">삭제</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.adminChangeStatus = function(uid, newStatus, nickname) {
+  if (!newStatus) return;
+  if (!confirm(`${nickname}님의 상태를 '${newStatus}'로 변경하시겠습니까?`)) return;
+  const updates = { status: newStatus };
+  if (newStatus !== 'matched') updates.partnerId = null;
+  db.collection('users').doc(uid).update(updates).then(() => alert(`${nickname}님 상태가 변경되었습니다.`));
+};
+
+window.adminTogglePart = function(uid, nickname, currentlyParticipating) {
+  const newPart = !currentlyParticipating;
+  const msg = newPart ? `${nickname}님을 참여O로 변경하시겠습니까?` : `${nickname}님을 불참으로 변경하시겠습니까?`;
+  if (!confirm(msg)) return;
+  db.collection('users').doc(uid).update({ isParticipating: newPart }).then(() => alert('변경 완료!'));
+};
+
+window.adminDeleteUser = function(uid, nickname) {
+  if (!confirm(`⚠️ ${nickname}님의 프로필/지망 데이터를 삭제하시겠습니까?\n\n(로그인 계정은 유지됩니다)`)) return;
+  const userData = adminUsersData[uid];
+  const batch = db.batch();
+  if (userData?.partnerId) {
+    batch.update(db.collection('users').doc(userData.partnerId), { status: 'waiting', partnerId: null });
+  }
+  batch.delete(db.collection('users').doc(uid));
+  batch.delete(db.collection('requests').doc(uid));
+  batch.commit().then(() => alert(`${nickname}님 데이터가 삭제되었습니다.`));
+};
 
 function loadAdminData() {
   if (adminUsersSnap && adminReqSnap) {
@@ -831,6 +941,8 @@ function renderAdminFromSnaps(snap, reqSnap) {
   if (globalSettings.showPref2 !== undefined) { const el = document.getElementById('toggle-pref2'); if (el) el.checked = globalSettings.showPref2; }
   if (globalSettings.showPref3 !== undefined) { const el = document.getElementById('toggle-pref3'); if (el) el.checked = globalSettings.showPref3; }
   if (globalSettings.showDispref !== undefined) { const el = document.getElementById('toggle-dispref'); if (el) el.checked = globalSettings.showDispref; }
+
+  renderAllMembersPanel();
 }
 
 // 관리자 버튼 이벤트
