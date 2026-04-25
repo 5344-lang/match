@@ -1,0 +1,10 @@
+# Mac/Windows 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+
+# 환경 변수 파일 (추후 API 키 분리 시 사용)
+.env
+.env.local

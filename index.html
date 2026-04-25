@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>매칭 시스템</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="app-container"><input type="email" id="email" placeholder="아이디" required>
+    <header>
+      <h1>비밀 매칭 시스템 💘</h1>
+      <button id="logout-btn" style="display: none;">로그아웃</button>
+    </header>
+
+    <section id="auth-section">
+      <h2>로그인 및 시작하기</h2>
+      <input type="text" id="userid" placeholder="아이디" required>
+      <input type="password" id="password" placeholder="비밀번호" required>
+      <div class="auth-buttons">
+        <button id="login-btn">로그인</button>
+        <button id="signup-btn" class="secondary">회원가입</button>
+      </div>
+    </section>
+
+    <section id="profile-section" style="display: none;">
+      <h2>내 프로필 설정</h2>
+      <form id="profile-form">
+        <div class="form-group">
+          <label for="photo">프로필 사진</label>
+          <input type="file" id="photo" accept="image/*">
+        </div>
+        
+        <input type="text" id="nickname" placeholder="닉네임" required>
+        <input type="number" id="birthYear" placeholder="태어난 해 (예: 95)" required>
+        
+        <select id="city">
+          <option value="대구" selected>대구</option>
+          <option value="부산">부산</option>
+          <option value="구미">구미</option>
+          <option value="포항">포항</option>
+          <option value="경산">경산</option>
+          <option value="울산">울산</option>
+          <option value="안동">안동</option>
+          <option value="기타">기타 지역</option>
+        </select>
+
+        <div class="spectrum-container">
+          <label>성향 스펙트럼 (<span id="spectrum-label">세글</span>)</label>
+          <input type="range" id="personality-slider" min="0" max="100" step="1" value="50">
+          <div class="labels">
+            <span>한글</span>
+            <span>세글</span>
+            <span>두글</span>
+          </div>
+        </div>
+
+        <textarea id="intro" placeholder="자유로운 자기소개를 적어주세요 (예: 주말에는 보드게임을 즐겨요!)"></textarea>
+        
+        <label class="toggle-label">
+          <input type="checkbox" id="isParticipating" checked>
+          이번 회차 매칭에 참여합니다
+        </label>
+        
+        <button type="submit" id="save-profile-btn">프로필 저장 및 대기실 이동</button>
+      </form>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

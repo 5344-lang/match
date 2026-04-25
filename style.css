@@ -1,0 +1,110 @@
+/* 기본 초기화 및 폰트 설정 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+body {
+  background-color: #f4f7f6;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 24px;
+  overflow: hidden;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+header h1 {
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+/* 폼 요소 스타일 */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: none;
+  height: 80px;
+}
+
+/* 버튼 스타일 */
+button {
+  width: 100%;
+  padding: 14px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover { background-color: #2980b9; }
+button.secondary { background-color: #95a5a6; margin-top: 8px; }
+button.secondary:hover { background-color: #7f8c8d; }
+
+/* 성향 스펙트럼 슬라이더 */
+.spectrum-container {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.spectrum-container label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#spectrum-label { color: #e74c3c; }
+
+input[type="range"] { width: 100%; margin-bottom: 8px; }
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
