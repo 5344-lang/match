@@ -139,6 +139,7 @@ document.getElementById('withdraw-btn').addEventListener('click', async () => {
 // 7. 마이페이지
 function openMyPage() {
   if (myUserData.status === 'submitted' || myUserData.status === 'matched') return alert("제출 후엔 프로필 수정이 불가합니다.");
+  if (globalSettings?.isMatchingActive) return alert("매칭 진행 중에는 프로필 수정이 불가합니다.");
   document.getElementById('nickname').value = myUserData.nickname || "";
   document.getElementById('birthYear').value = myUserData.birthYear || "1996";
   document.getElementById('kakao-link').value = myUserData.kakaoLink || "";
@@ -173,6 +174,11 @@ function openMyPage() {
 
 document.getElementById('mypage-btn').addEventListener('click', openMyPage);
 document.getElementById('waitroom-mypage-btn').addEventListener('click', openMyPage);
+document.getElementById('waitroom-profilecheck-btn').addEventListener('click', () => {
+  showWaitroomArea('profile-check-area');
+  updateProfileCheckUI();
+});
+document.getElementById('waitroom-find-btn').addEventListener('click', () => goToSelectionArea());
 
 // 8. 프로필 저장
 document.getElementById('profile-form').addEventListener('submit', function(e) {
@@ -219,22 +225,85 @@ auth.onAuthStateChanged(user => {
 
 // 10. 대기실 UI
 function updateWaitroomUI() {
+  const gs = globalSettings;
+  const isPart = myUserData.isParticipating !== false;
+  const isConfirmed = myUserData.isProfileConfirmed;
+  const isSubmitted = myUserData.status === 'submitted';
+
+  // 단계 계산
+  let currentStep = 0;
+  if (gs.resultsPublished) currentStep = 3;
+  else if (gs.isMatchingActive) currentStep = 2;
+  else if (gs.isProfileCheckActive) currentStep = 1;
+
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById(`hstep-${i}`);
+    const conn = document.getElementById(`hstep-conn-${i}`);
+    if (el) el.className = 'hstep-item' + (i < currentStep ? ' hstep-done' : i === currentStep ? ' hstep-active' : '');
+    if (conn) conn.className = 'hstep-connector' + (i < currentStep ? ' done' : '');
+  }
+
+  // 참여 토글
+  const toggle = document.getElementById('waitroom-participation-toggle');
+  const toggleWrapper = document.getElementById('home-toggle-wrapper');
+  if (toggle) { toggle.checked = isPart; toggle.disabled = isConfirmed; }
+  if (toggleWrapper) {
+    toggleWrapper.style.display = gs.isMatchingActive ? 'none' : 'flex';
+    toggleWrapper.style.opacity = isConfirmed ? '0.6' : '1';
+  }
+
+  // 상태 배지
+  const badgePart = document.getElementById('badge-participating');
+  if (badgePart) {
+    badgePart.style.display = 'inline-block';
+    badgePart.innerText = isPart ? '✅ 참여 예정' : '❌ 불참';
+    badgePart.style.background = isPart ? '#e8f8f0' : '#fdf0f0';
+    badgePart.style.color = isPart ? '#27ae60' : '#e74c3c';
+  }
+  const badgeConf = document.getElementById('badge-confirmed');
+  if (badgeConf) {
+    if (isConfirmed && isPart) { badgeConf.style.display = 'inline-block'; badgeConf.innerText = '🔍 점검완료'; badgeConf.style.background = '#e8f8f0'; badgeConf.style.color = '#27ae60'; }
+    else badgeConf.style.display = 'none';
+  }
+  const badgeSub = document.getElementById('badge-submitted-home');
+  if (badgeSub) {
+    if (isSubmitted) { badgeSub.style.display = 'inline-block'; badgeSub.innerText = '📬 제출완료'; badgeSub.style.background = '#eef2f7'; badgeSub.style.color = 'var(--deep-navy)'; }
+    else badgeSub.style.display = 'none';
+  }
+
+  const matchLabel = document.getElementById('room-match-label');
+  if (matchLabel) matchLabel.innerText = gs.matchTitle || '';
+
   const title = document.getElementById('room-status-title');
   const desc = document.getElementById('room-status-desc');
-  const btn = document.getElementById('waitroom-mypage-btn');
-  const matchLabel = document.getElementById('room-match-label');
-  const toggle = document.getElementById('waitroom-participation-toggle');
-  const isPart = myUserData.isParticipating !== false;
-  if (toggle) toggle.checked = isPart;
-  if (matchLabel) matchLabel.innerText = globalSettings.matchTitle || '';
-  if (isPart) {
-    title.innerText = "⏳ 매칭 시작 전입니다.";
-    desc.innerHTML = "진행자가 매칭을 시작할 때까지 잠시 기다려주세요.<br>그동안 내 프로필이 잘 설정되었는지 확인해볼까요?";
-    btn.innerText = "🔍 내 프로필 점검하기"; btn.style.background = "var(--soft-rose)";
+  const mypageBtn = document.getElementById('waitroom-mypage-btn');
+  const profileCheckBtn = document.getElementById('waitroom-profilecheck-btn');
+  const findBtn = document.getElementById('waitroom-find-btn');
+  if (mypageBtn) mypageBtn.style.display = 'none';
+  if (profileCheckBtn) profileCheckBtn.style.display = 'none';
+  if (findBtn) findBtn.style.display = 'none';
+
+  if (!isPart) {
+    title.innerText = '💤 이번 매칭에 참여하지 않네요.';
+    desc.innerHTML = '다음에 만나요!<br>참여를 원하신다면 위 토글을 켜주세요.';
+    if (mypageBtn) { mypageBtn.style.display = 'block'; mypageBtn.innerText = '✏️ 내 프로필 수정하기'; mypageBtn.style.background = '#F0F2F5'; mypageBtn.style.color = '#555'; }
+  } else if (gs.isMatchingActive) {
+    title.innerText = '💘 매칭이 시작되었습니다!';
+    desc.innerHTML = '지금 바로 내 운명의 상대를 찾아보세요!<br>카드를 살펴보고 지망을 선택해 제출해주세요.';
+    if (findBtn) findBtn.style.display = 'block';
+  } else if (gs.isProfileCheckActive) {
+    if (isConfirmed) {
+      title.innerText = '✅ 프로필 점검 완료!';
+      desc.innerHTML = '매칭 시작을 기다려주세요.<br>곧 내 운명의 상대를 만날 수 있어요! 💘';
+    } else {
+      title.innerText = '🔍 프로필 점검 기간입니다!';
+      desc.innerHTML = '프로필을 확인하고 참여 의사를 확정해주세요.<br>확정 후에는 참여 여부를 변경할 수 없습니다.';
+      if (profileCheckBtn) profileCheckBtn.style.display = 'block';
+    }
   } else {
-    title.innerText = "💤 이번 매칭에 참여하지 않네요.";
-    desc.innerHTML = "다음에 만나요!<br>만약 참여를 원하신다면 위 토글을 켜주세요.";
-    btn.innerText = "✏️ 내 프로필 수정하기"; btn.style.background = "var(--deep-navy)";
+    title.innerText = '⏳ 매칭 시작 전입니다.';
+    desc.innerHTML = '진행자가 매칭을 시작할 때까지 기다려주세요.<br>그동안 프로필을 미리 확인해보세요!';
+    if (mypageBtn) { mypageBtn.style.display = 'block'; mypageBtn.innerText = '✏️ 내 프로필 수정하기'; mypageBtn.style.background = 'var(--deep-navy)'; mypageBtn.style.color = 'white'; }
   }
 }
 
@@ -248,12 +317,30 @@ document.getElementById('waitroom-participation-toggle').addEventListener('chang
   if (user) db.collection('users').doc(user.uid).update({ isParticipating: isPart });
 });
 
+// 전광판 업데이트 (관리자/일반 공통)
+function updateTickerDisplay(data) {
+  const tickerContainer = document.getElementById('ticker-container');
+  const tickerText = document.getElementById('ticker-text');
+  if (!tickerContainer || !tickerText) return;
+  const title = data?.matchTitle || '이번 매칭';
+  let autoMsg = null;
+  if (data?.resultsPublished) autoMsg = `🎉 ${title} 결과가 발표되었습니다! 결과 확인 버튼을 눌러보세요 💘`;
+  else if (data?.isMatchingActive) autoMsg = `💘 ${title} 진행 중입니다! 카드를 살펴보고 지망을 제출해주세요 ✨`;
+  else if (data?.isProfileCheckActive) autoMsg = `🔍 ${title} 준비 중 · 내 프로필을 점검하고 참여 여부를 확정해주세요 · 곧 매칭이 시작됩니다!`;
+  const msg = data?.tickerMessage || autoMsg;
+  if (msg) {
+    tickerText.innerText = msg;
+    tickerText.style.animationDuration = `${Math.max(10, msg.length * 0.22)}s`;
+    tickerContainer.style.display = 'block';
+  } else { tickerContainer.style.display = 'none'; }
+}
+
 // 11. 전역 설정 실시간 감시
 function listenToGlobalSettings() {
   db.collection('settings').doc('global').onSnapshot(doc => {
-    // 🌟 홈화면 이동 버그 수정: 관리자가 대시보드를 보고 있으면 화면 전환 하지 않음
     if (myUserData?.isAdmin && sections.admin.style.display === 'block') {
       if (doc.exists) globalSettings = doc.data();
+      updateTickerDisplay(globalSettings);
       startAdminRealtimeListeners();
       loadAdminData();
       return;
@@ -263,26 +350,12 @@ function listenToGlobalSettings() {
     const data = doc.data();
     globalSettings = data;
 
-    // 관리자 단계 초기화 (첫 로드 시에만)
     if (myUserData?.isAdmin && !adminStepInitialized) {
       adminStepInitialized = true;
       goToAdminStep(data.adminStep ?? 0);
     }
 
-    // 전광판
-    const tickerContainer = document.getElementById('ticker-container');
-    const tickerText = document.getElementById('ticker-text');
-    const title = data.matchTitle || '이번 매칭';
-    let autoMsg = null;
-    if (data.resultsPublished) autoMsg = `🎉 ${title} 결과가 발표되었습니다! 결과 확인 버튼을 눌러보세요 💘`;
-    else if (data.isMatchingActive) autoMsg = `💘 ${title} 진행 중입니다! 카드를 살펴보고 지망을 제출해주세요 ✨`;
-    else if (data.isProfileCheckActive) autoMsg = `🔍 ${title} 준비 중 · 내 프로필을 점검하고 참여 여부를 확정해주세요 · 곧 매칭이 시작됩니다!`;
-    const msg = data.tickerMessage || autoMsg;
-    if (msg) {
-      tickerText.innerText = msg;
-      tickerText.style.animationDuration = `${Math.max(10, msg.length * 0.22)}s`;
-      tickerContainer.style.display = 'block';
-    } else { tickerContainer.style.display = 'none'; }
+    updateTickerDisplay(data);
 
     const matchLabel = document.getElementById('room-match-label');
     if (matchLabel) matchLabel.innerText = data.matchTitle || '';
@@ -302,23 +375,32 @@ function listenToGlobalSettings() {
       return;
     }
     if (data.isMatchingActive && myUserData.isParticipating) {
-      showWaitroomArea('selection-area');
+      // 홈화면에서 단계 안내 + "내 운명의 상대 찾기" 버튼 표시
+      updateWaitroomUI();
+      showWaitroomArea('waitroom-header');
+      // 버튼 표시 설정은 updateWaitroomUI에서 처리됨
+      // selection-area 진입은 찾기 버튼 또는 goToSelectionArea()로
       document.getElementById('btn-pref2').style.display = data.showPref2 ? 'inline-block' : 'none';
       document.getElementById('btn-pref3').style.display = data.showPref3 ? 'inline-block' : 'none';
       document.getElementById('btn-dispref').style.display = data.showDispref ? 'inline-block' : 'none';
       document.getElementById('li-pref2').style.display = data.showPref2 ? 'flex' : 'none';
       document.getElementById('li-pref3').style.display = data.showPref3 ? 'flex' : 'none';
       document.getElementById('li-dispref').style.display = data.showDispref ? 'flex' : 'none';
-      loadCards();
     } else if (data.isProfileCheckActive && !data.isMatchingActive) {
-      showWaitroomArea('profile-check-area');
-      updateProfileCheckUI();
+      // 홈화면에서 단계 안내 + 점검 버튼 표시 (profile-check-area는 버튼 클릭 시 이동)
+      updateWaitroomUI();
+      showWaitroomArea('waitroom-header');
     } else {
       updateWaitroomUI(); showWaitroomArea('waitroom-header');
     }
     if (myUserData.isAdmin) { startAdminRealtimeListeners(); loadAdminData(); }
   });
 }
+
+window.goToSelectionArea = function() {
+  showWaitroomArea('selection-area');
+  loadCards();
+};
 
 // 12. 프로필 점검 UI
 function updateProfileCheckUI() {
@@ -579,15 +661,30 @@ function renderAdminFromSnaps(snap, reqSnap) {
   });
   if (logListDiv && logsArray.length === 0) logListDiv.innerHTML = "<p style='color:#777;'>제출된 지망이 없습니다.</p>";
 
-  // 프로필 점검 현황
-  let confirmedCount = 0; let participatingCount = 0;
+  // 프로필 점검 현황 + 미점검자 목록
+  let confirmedCount = 0; let participatingCount = 0; const unconfirmedNames = [];
   snap.forEach(doc => {
     const u = doc.data();
     if (u.isAdmin || !u.nickname) return;
-    if (u.isParticipating) { participatingCount++; if (u.isProfileConfirmed) confirmedCount++; }
+    if (u.isParticipating) {
+      participatingCount++;
+      if (u.isProfileConfirmed) confirmedCount++;
+      else unconfirmedNames.push(`${u.emoji || '👤'} ${u.nickname}`);
+    }
   });
   const profileCheckStatus = document.getElementById('profile-check-confirm-status');
   if (profileCheckStatus) profileCheckStatus.innerHTML = `참여 예정자 ${participatingCount}명 중 <b>${confirmedCount}명</b> 점검 완료`;
+  const unconfirmedListDiv = document.getElementById('profile-unconfirmed-list');
+  if (unconfirmedListDiv) {
+    if (unconfirmedNames.length > 0) {
+      unconfirmedListDiv.style.display = 'block';
+      unconfirmedListDiv.innerHTML = `<div style="font-weight:700; margin-bottom:5px; color:#e74c3c;">⚠️ 미점검 ${unconfirmedNames.length}명</div>` +
+        unconfirmedNames.map(n => `<div style="padding:3px 0; border-bottom:1px dashed #f0d0d8;">${n}</div>`).join('');
+    } else {
+      unconfirmedListDiv.style.display = participatingCount > 0 ? 'block' : 'none';
+      unconfirmedListDiv.innerHTML = '<span style="color:#27ae60; font-weight:700;">✅ 모두 점검 완료!</span>';
+    }
+  }
 
   // 확정된 커플 목록 (1:1)
   const matchedListDiv = document.getElementById('admin-matched-list');
@@ -823,3 +920,61 @@ document.getElementById('manual-match-btn').addEventListener('click', () => {
   batch.update(db.collection('users').doc(bId), { status: 'matched', partnerId: aId });
   batch.commit().then(() => { alert("수동 매칭 완료!"); loadAdminData(); });
 });
+
+// 수동 매칭 AI 분석
+function updateManualMatchPreview() {
+  const aId = document.getElementById('manual-a-user').value;
+  const bId = document.getElementById('manual-b-user').value;
+  const preview = document.getElementById('manual-match-preview');
+  if (!aId || !bId || aId === bId || !adminUsersData[aId] || !adminUsersData[bId]) {
+    preview.style.display = 'none'; return;
+  }
+  const A = adminUsersData[aId]; const B = adminUsersData[bId];
+  const reqA = requestsData[aId] || {}; const reqB = requestsData[bId] || {};
+
+  document.getElementById('manual-card-a-emoji').innerText = A.emoji || '👤';
+  document.getElementById('manual-card-a-name').innerText = A.nickname;
+  document.getElementById('manual-card-a-info').innerText = `${A.birthYear % 100}년생 · ${A.city}`;
+  document.getElementById('manual-card-a-spec').innerText = getScoreLabel(A.personalityScore || 50);
+  document.getElementById('manual-card-b-emoji').innerText = B.emoji || '👤';
+  document.getElementById('manual-card-b-name').innerText = B.nickname;
+  document.getElementById('manual-card-b-info').innerText = `${B.birthYear % 100}년생 · ${B.city}`;
+  document.getElementById('manual-card-b-spec').innerText = getScoreLabel(B.personalityScore || 50);
+
+  const rankA = getRank(reqA, bId); const rankB = getRank(reqB, aId);
+  const scoreA = getRankScore(reqA, bId); const scoreB = getRankScore(reqB, aId);
+  const totalScore = scoreA + scoreB;
+  const disA = reqA.dispref1 === bId; const disB = reqB.dispref1 === aId;
+  const specDiff = Math.abs((A.personalityScore || 50) - (B.personalityScore || 50));
+  const hasHistory = (A.matchHistory || []).includes(bId) || (B.matchHistory || []).includes(aId);
+
+  const lines = [
+    `${A.nickname} → ${B.nickname}: <b style="color:var(--soft-rose)">${rankA || '미선택'}</b>`,
+    `${B.nickname} → ${A.nickname}: <b style="color:var(--soft-rose)">${rankB || '미선택'}</b>`,
+    `매칭 점수: <b>${totalScore}점 / 6점</b>`,
+    `성향 차이: <b>${specDiff}점</b> (${getScoreLabel(A.personalityScore || 50)} ↔ ${getScoreLabel(B.personalityScore || 50)})`,
+  ];
+  if (rankA && rankB) lines.push(`💑 <b>서로 지목한 사이입니다!</b>`);
+  if (disA) lines.push(`🚨 <b style="color:#e74c3c">${A.nickname}이 ${B.nickname}을 비선호로 선택</b>`);
+  if (disB) lines.push(`🚨 <b style="color:#e74c3c">${B.nickname}이 ${A.nickname}을 비선호로 선택</b>`);
+  if (hasHistory) lines.push(`🔁 <b style="color:#e67e22">이전 회차 매칭 이력 있음</b>`);
+  document.getElementById('manual-match-info').innerHTML = lines.join('<br>');
+
+  // AI 종합 판단
+  let verdict = ''; let verdictBg = '';
+  if ((disA || disB)) { verdict = '⛔ 비선호 의사가 있어 매칭 시 주의가 필요합니다.'; verdictBg = '#fdf0f0'; }
+  else if (hasHistory) { verdict = '🔁 이전 회차 매칭 이력이 있어 신중한 판단이 필요합니다.'; verdictBg = '#fff8e1'; }
+  else if (totalScore >= 5 && rankA && rankB) { verdict = '🌟 최고의 매칭! 서로 높은 지망으로 선택한 강력 추천 커플입니다.'; verdictBg = '#e8f8f0'; }
+  else if (totalScore >= 4) { verdict = '💚 좋은 매칭. 서로 긍정적인 인상을 갖고 있습니다.'; verdictBg = '#e8f8f0'; }
+  else if (rankA && rankB) { verdict = '💑 서로 선택한 사이입니다. 매칭을 고려해보세요.'; verdictBg = '#fff0f5'; }
+  else if (totalScore === 0) { verdict = '❓ 서로 선택하지 않은 사이입니다. 진행자 판단이 필요합니다.'; verdictBg = '#f5f5f5'; }
+  else { verdict = `⚠️ 한쪽만 선택한 사이입니다. (점수 ${totalScore}/6점)`; verdictBg = '#fff8e1'; }
+
+  const verdictEl = document.getElementById('manual-match-verdict');
+  verdictEl.innerText = verdict; verdictEl.style.background = verdictBg;
+
+  preview.style.display = 'block';
+}
+
+document.getElementById('manual-a-user').addEventListener('change', updateManualMatchPreview);
+document.getElementById('manual-b-user').addEventListener('change', updateManualMatchPreview);
