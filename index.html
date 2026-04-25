@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>매칭 시스템</title>
+  <title>매칭 시스템 v.1</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="app-container"><input type="email" id="email" placeholder="아이디" required>
+  <div class="app-container">
     <header>
       <h1>비밀 매칭 시스템 💘</h1>
       <button id="logout-btn" style="display: none;">로그아웃</button>
     </header>
 
     <section id="auth-section">
-      <h2>로그인 및 시작하기</h2>
       <input type="text" id="userid" placeholder="아이디" required>
       <input type="password" id="password" placeholder="비밀번호" required>
       <div class="auth-buttons">
