@@ -23,7 +23,7 @@
     <section id="auth-section">
       <h2>로그인 및 시작하기</h2>
       <div class="input-card">
-        <input type="text" id="userid" placeholder="원하시는 아이디 (6자리 이상)" required>
+        <input type="text" id="userid" placeholder="아이디" required>
         <input type="password" id="password" placeholder="비밀번호" required>
       </div>
       <div class="auth-buttons">
@@ -47,15 +47,12 @@
         <div class="input-card">
           <input type="text" id="nickname" placeholder="닉네임" required>
           <input type="number" id="birthYear" placeholder="태어난 해 (예: 96)" required>
-          
           <select id="city">
             <option value="대구" selected>대구</option>
             <option value="부산">부산</option>
             <option value="구미">구미</option>
-            <option value="포항">포항</option>
             <option value="경산">경산</option>
             <option value="울산">울산</option>
-            <option value="안동">안동</option>
             <option value="기타">기타 지역</option>
           </select>
         </div>
@@ -69,9 +66,8 @@
             <input type="range" id="personality-slider" min="0" max="100" step="1" value="50">
           </div>
           <div class="spectrum-poles">
-            <span class="pole-tag left">한글</span>
-            <span class="pole-tag center"> </span>
-            <span class="pole-tag right">두글</span>
+            <span class="pole-tag">한글</span>
+            <span class="pole-tag">두글</span>
           </div>
         </div>
 
@@ -95,69 +91,32 @@
 
       <div id="selection-area" style="display: none;">
         <h3>💘 매칭 지망 선택</h3>
-        <p class="guide-text">원하는 상대의 닉네임을 선택하세요.</p>
-        
-        <div class="select-box">
-          <label>1지망 (필수)</label>
-          <select id="pref-1"><option value="">선택하세요</option></select>
-        </div>
-        <div class="select-box" id="pref-2-box">
-          <label>2지망</label>
-          <select id="pref-2"><option value="">선택하세요</option></select>
-        </div>
-        <div class="select-box" id="pref-3-box">
-          <label>3지망</label>
-          <select id="pref-3"><option value="">선택하세요</option></select>
-        </div>
-        
+        <div class="select-box"><label>1지망 (필수)</label><select id="pref-1"></select></div>
+        <div class="select-box" id="pref-2-box"><label>2지망</label><select id="pref-2"></select></div>
+        <div class="select-box" id="pref-3-box"><label>3지망</label><select id="pref-3"></select></div>
         <hr class="divider">
-        
-        <div class="select-box" id="dispref-1-box">
-          <label>이 사람은 안돼요</label>
-          <select id="dispref-1"><option value="">선택하세요</option></select>
-        </div>
-        <button id="submit-selection-btn">제출하기</button>
+        <div class="select-box" id="dispref-1-box"><label>이 사람은 안돼요</label><select id="dispref-1"></select></div>
+        <button id="submit-selection-btn">지망 제출하기</button>
       </div>
     </section>
 
     <section id="admin-section" style="display: none;">
       <h2>🛠 최고 관리자 대시보드</h2>
-      
       <div class="admin-panel">
         <h3>매칭 시스템 제어</h3>
         <button id="admin-start-btn" class="action-btn start">매칭 시작 (선택창 열기)</button>
         <button id="admin-stop-btn" class="action-btn stop">매칭 종료 (선택창 닫기)</button>
         
-        <h4 style="margin-top:20px;">선택창 옵션 설정</h4>
-        <label><input type="checkbox" id="toggle-pref2" checked> 2지망 활성화</label><br>
-        <label><input type="checkbox" id="toggle-pref3" checked> 3지망 활성화</label><br>
-        <label><input type="checkbox" id="toggle-dispref" checked> 비선호  활성화</label>
-      </div>
-
-      <div class="admin-panel simulator">
-        <h3>🔬 매칭 파국 시뮬레이터</h3>
-        <div class="sim-inputs">
-          <div>
-            <label>A 성향 점수</label>
-            <input type="number" id="sim-score-a" placeholder="0~100">
-            <label>A 출생 연도</label>
-            <input type="number" id="sim-year-a" placeholder="예: 1996">
-          </div>
-          <div>
-            <label>B 성향 점수</label>
-            <input type="number" id="sim-score-b" placeholder="0~100">
-            <label>B 출생 연도</label>
-            <input type="number" id="sim-year-b" placeholder="예: 1999">
-          </div>
+        <div class="admin-options">
+          <p>선택창 옵션 설정</p>
+          <label class="admin-check"><input type="checkbox" id="toggle-pref2" checked> 2지망 활성화</label>
+          <label class="admin-check"><input type="checkbox" id="toggle-pref3" checked> 3지망 활성화</label>
+          <label class="admin-check"><input type="checkbox" id="toggle-dispref" checked> 비선호 1 활성화</label>
         </div>
-        <button id="sim-btn" class="secondary-btn">궁합 분석하기</button>
-        <div id="sim-result" class="sim-result-box">결과가 여기에 표시됩니다.</div>
       </div>
-
-      <button onclick="location.reload()" class="secondary-btn" style="margin-top: 20px;">메인으로 돌아가기</button>
+      <button onclick="location.reload()" class="secondary-btn">메인으로 돌아가기</button>
     </section>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
