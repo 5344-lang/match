@@ -112,10 +112,26 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 0; 
 .sim-cards-wrapper { display: flex; justify-content: center; align-items: center; gap: 15px; }
 .sim-card { background: white; padding: 15px; border-radius: 12px; width: 110px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 .sim-vs { font-size: 2rem; }
-/* 대기실 프로필 확인/수정 버튼 글자색 흰색 고정 */
-#waitroom-mypage-btn {
-  color: white !important;
-}
+/* 홈 단계 pill */
+#home-step-pill { display:inline-block; background:#eef1f5; border-radius:20px; padding:5px 16px; font-size:0.74rem; font-weight:700; color:#8899aa; letter-spacing:0.04em; }
+
+/* 참여 결정 카드 */
+.home-participation-card { background:white; border:2px solid #eee; border-radius:16px; padding:14px 28px; transition:border-color 0.2s, background 0.2s; }
+.home-participation-card.active { border-color:var(--soft-rose); background:#fff5f9; }
+
+/* 내 선택 현황 */
+.home-pick-item { background:#fafafa; border-radius:10px; padding:9px 12px; }
+.home-pick-rank { font-size:0.7rem; font-weight:700; margin-bottom:3px; }
+.home-pick-name { font-size:0.9rem; font-weight:800; color:var(--deep-navy); }
+.home-pick-name.empty { color:#ccc; font-weight:400; font-size:0.82rem; }
+
+/* 수동 매칭 분석 */
+#manual-match-preview { animation:fadeInUp 0.4s ease; }
+@keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* 파트너 팝업 */
+#partner-popup { display:none; }
+#partner-popup > div { max-height:90vh; overflow-y:auto; }
 
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
@@ -139,3 +155,19 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 0; 
 .step-nav-btn { flex:1; padding:13px; border-radius:12px; border:none; font-weight:700; font-size:0.95rem; cursor:pointer; background:var(--deep-navy); color:white; transition:0.2s; }
 .step-nav-btn:active { transform:scale(0.98); }
 .step-nav-btn.secondary { background:#F0F2F5; color:#555; }
+
+/* 관리자 탭 네비게이션 */
+.admin-nav-tabs { display:flex; gap:8px; margin-bottom:20px; }
+.admin-nav-tab { flex:1; padding:10px; border-radius:12px; background:#f0f2f5; color:#777; font-size:0.88rem; font-weight:700; transition:0.2s; border:none; cursor:pointer; }
+.admin-nav-tab.active { background:var(--deep-navy); color:white; }
+.admin-nav-tab:active { transform:scale(0.98); }
+
+/* 전체회원 관리 */
+.member-row { display:flex; justify-content:space-between; align-items:flex-start; padding:12px 0; border-bottom:1px solid #f0f0f0; gap:10px; }
+.member-row:last-child { border-bottom:none; }
+.member-main { display:flex; gap:10px; align-items:flex-start; flex:1; min-width:0; }
+.member-emoji { font-size:1.8rem; flex-shrink:0; line-height:1.2; }
+.member-info { flex:1; min-width:0; }
+.member-name { font-weight:800; font-size:0.9rem; color:var(--deep-navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.member-sub { font-size:0.75rem; color:#aaa; margin-top:1px; }
+.member-actions { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
