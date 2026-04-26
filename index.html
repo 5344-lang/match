@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 💘</title>
+  <title>Secret Match 1.2 💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -244,6 +244,7 @@
       <div class="admin-nav-tabs">
         <button class="admin-nav-tab active" id="admin-tab-match" onclick="switchAdminView('match')">📊 매칭 관리</button>
         <button class="admin-nav-tab" id="admin-tab-members" onclick="switchAdminView('members')">👥 전체회원 관리</button>
+        <button class="admin-nav-tab" id="admin-tab-banned" onclick="switchAdminView('banned')">🚫 차단 관리</button>
       </div>
 
       <div id="admin-match-view">
@@ -330,6 +331,11 @@
             <p style="font-size:0.78rem; color:#e74c3c; margin-bottom:6px; font-weight:700;">⚠️ 이 단계 초기화</p>
             <button id="reset-step1-btn" style="background:#fdf0f0; color:#e74c3c; font-size:0.8rem; padding:9px; border:1px solid #f5c6c6; width:auto;">🔄 매칭 제출 초기화 (전원 waiting 복구)</button>
           </div>
+        </div>
+        <div class="admin-panel">
+          <h3>✅ 제출자 목록 (실시간)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">지망을 제출 완료한 참여자 목록입니다.</p>
+          <div id="admin-submitted-list" class="requests-list" style="max-height:150px; background:#f0fff4;"></div>
         </div>
         <div class="admin-panel">
           <h3>⏳ 미제출자 현황 (실시간)</h3>
@@ -462,6 +468,15 @@
           </div>
           <p id="all-members-count" style="font-size:0.8rem; color:#aaa; margin-bottom:10px;"></p>
           <div id="all-members-list" class="requests-list" style="max-height:500px;"></div>
+        </div>
+      </div>
+
+      <!-- 차단 관리 -->
+      <div id="admin-banned-panel" style="display:none;">
+        <div class="admin-panel">
+          <h3>🚫 차단된 회원 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:12px;">접속이 차단된 회원 목록입니다. 차단 해제 시 다시 로그인할 수 있습니다.</p>
+          <div id="banned-members-list" class="requests-list" style="max-height:500px;"></div>
         </div>
       </div>
 
