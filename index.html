@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Match 1.2 💘</title>
+  <title>Secret Match 💘</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
   <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
   <link rel="stylesheet" href="style.css">
@@ -55,7 +55,7 @@
               <div class="emoji-item" data-emoji="👩‍🦱">👩‍🦱</div>
               <div class="emoji-item" data-emoji="🧑‍🦱">🧑‍🦱</div>
               <div class="emoji-item" data-emoji="👨‍🦱">👨‍🦱</div>
-              <div class="emoji-item" data-emoji="기타">✏️</div>
+              <div class="emoji-item" data-emoji="기타" style="font-size:0.72rem; font-weight:700; color:#888; width:45px; height:45px;">직접<br>입력</div>
             </div>
             <input type="text" id="custom-emoji" class="emoji-input" maxlength="2" placeholder="입력" style="display: none;">
           </div>
@@ -64,8 +64,9 @@
         <div class="input-card">
           <input type="text" id="nickname" placeholder="닉네임" required>
           <select id="birthYear"></select>
-          <select id="city">
-            <option value="대구" selected>대구</option><option value="부산">부산</option>
+          <select id="city" required>
+            <option value="" disabled selected>거주 지역 선택</option>
+            <option value="대구">대구</option><option value="부산">부산</option>
             <option value="포항">포항</option><option value="구미">구미</option>
             <option value="경산">경산</option><option value="울산">울산</option>
             <option value="기타">기타 지역 (직접 입력)</option>
