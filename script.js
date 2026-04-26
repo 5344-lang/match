@@ -52,6 +52,10 @@ function getScoreLabel(val) {
   if (val <= 12) return "완전 한글"; if (val <= 37) return "한세글";
   if (val <= 62) return "세글"; if (val <= 87) return "두세글"; return "완전 두글";
 }
+function formatBirthYear(year) {
+  if (!year) return '-';
+  return String(year % 100).padStart(2, '0');
+}
 
 // 3. 성향 스펙트럼 슬라이더
 const slider = document.getElementById('personality-slider');
@@ -205,7 +209,13 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
 let myUserData = null;
 auth.onAuthStateChanged(user => {
   if (user) {
-    db.collection('users').doc(user.uid).onSnapshot(doc => {
+    db.collection('bannedUsers').doc(user.uid).get().then(banDoc => {
+      if (banDoc.exists) {
+        auth.signOut();
+        alert('관리자에 의해 접근이 제한된 계정입니다.');
+        return;
+      }
+      db.collection('users').doc(user.uid).onSnapshot(doc => {
       if (doc.exists) {
         myUserData = doc.data();
         document.getElementById('logout-btn').style.display = 'inline-block';
@@ -216,6 +226,7 @@ auth.onAuthStateChanged(user => {
         if (myUserData.nickname) listenToGlobalSettings();
         else showSection('profile');
       } else showSection('profile');
+      });
     });
   } else {
     showSection('auth'); document.getElementById('user-greeting').style.display = 'none';
@@ -543,7 +554,7 @@ function renderCard() {
   document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${allUsers.length}`;
   const u = allUsers[currentIndex];
   document.getElementById('c-emoji').innerText = u.emoji || '👩';
-  document.getElementById('c-nickname').innerHTML = `${u.nickname} <span id="c-age">${u.birthYear % 100}년생</span>`;
+  document.getElementById('c-nickname').innerHTML = `${u.nickname} <span id="c-age">${formatBirthYear(u.birthYear)}년생</span>`;
   document.getElementById('c-city').innerText = u.city;
   document.getElementById('c-score-label').innerText = getScoreLabel(u.personalityScore || 50);
   document.getElementById('c-mini-fill').style.width = `${u.personalityScore || 50}%`;
@@ -641,7 +652,7 @@ window.openPartnerPopup = function() {
   if (!partnerData) return;
   document.getElementById('popup-emoji').innerText = partnerData.emoji || '👩';
   document.getElementById('popup-nick').innerText = partnerData.nickname;
-  document.getElementById('popup-basic').innerText = `${partnerData.birthYear % 100}년생 · ${partnerData.city}`;
+  document.getElementById('popup-basic').innerText = `${formatBirthYear(partnerData.birthYear)}년생 · ${partnerData.city}`;
   document.getElementById('popup-spec-label').innerText = getScoreLabel(partnerData.personalityScore || 50);
   document.getElementById('popup-spec-fill').style.width = `${partnerData.personalityScore || 50}%`;
   document.getElementById('popup-intro').innerText = partnerData.intro || '(소개글 없음)';
@@ -671,9 +682,40 @@ let adminRenderTimer = null; let adminListenersActive = false;
 window.switchAdminView = function(view) {
   document.getElementById('admin-match-view').style.display = view === 'match' ? 'block' : 'none';
   document.getElementById('admin-members-panel').style.display = view === 'members' ? 'block' : 'none';
+  document.getElementById('admin-banned-panel').style.display = view === 'banned' ? 'block' : 'none';
   document.getElementById('admin-tab-match').classList.toggle('active', view === 'match');
   document.getElementById('admin-tab-members').classList.toggle('active', view === 'members');
+  document.getElementById('admin-tab-banned').classList.toggle('active', view === 'banned');
   if (view === 'members') { renderAllMembersPanel(); loadAdminData(); }
+  if (view === 'banned') renderBannedPanel();
+};
+
+function renderBannedPanel() {
+  const listEl = document.getElementById('banned-members-list');
+  listEl.innerHTML = '<p style="color:#aaa; font-size:0.85rem;">불러오는 중...</p>';
+  db.collection('bannedUsers').orderBy('bannedAt', 'desc').get().then(snap => {
+    if (snap.empty) { listEl.innerHTML = '<p style="color:#aaa; font-size:0.85rem;">차단된 회원이 없습니다.</p>'; return; }
+    listEl.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const date = d.bannedAt?.toDate ? d.bannedAt.toDate().toLocaleDateString('ko-KR') : '-';
+      const escNick = (d.nickname || doc.id).replace(/'/g, "\\'");
+      return `<div class="member-row" style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-weight:700; font-size:0.9rem;">${d.nickname || doc.id}</div>
+          <div style="font-size:0.75rem; color:#aaa;">차단일: ${date}</div>
+        </div>
+        <button onclick="adminUnbanUser('${doc.id}', '${escNick}')" style="background:#e8f5e9; color:#27ae60; border:1px solid #a5d6a7; font-size:0.75rem; padding:5px 10px; width:auto; border-radius:8px;">차단 해제</button>
+      </div>`;
+    }).join('');
+  }).catch(() => { listEl.innerHTML = '<p style="color:#e74c3c; font-size:0.85rem;">불러오기 실패</p>'; });
+}
+
+window.adminUnbanUser = function(uid, nickname) {
+  if (!confirm(`${nickname}님의 차단을 해제하시겠습니까?\n해제 후 다시 로그인할 수 있습니다.`)) return;
+  db.collection('bannedUsers').doc(uid).delete().then(() => {
+    alert(`${nickname}님 차단이 해제되었습니다.`);
+    renderBannedPanel();
+  });
 };
 
 window.goToAdminStep = function(n, skipConfirm) {
@@ -758,8 +800,8 @@ function renderAllMembersPanel() {
       <div class="member-main">
         <span class="member-emoji">${u.emoji || '👤'}</span>
         <div class="member-info">
-          <div class="member-name">${u.nickname}${u.isAdmin ? ' <span style="font-size:0.68rem;color:#e67e22;font-weight:700;background:#fff3e0;padding:1px 5px;border-radius:6px;">관리자</span>' : ''}</div>
-          <div class="member-sub">${u.birthYear ? (u.birthYear % 100) + '년생' : '-'} · ${u.city || '-'}</div>
+          <div class="member-name">${u.nickname}${u.isAdmin ? ' <span style="font-size:0.68rem;color:#e67e22;font-weight:700;background:#fff3e0;padding:1px 5px;border-radius:6px;">관리자</span>' : ''}${!u.isAdmin ? ` <button onclick="adminDeleteUser('${u.id}', '${escNick}')" style="background:none; color:#ccc; border:none; font-size:0.85rem; padding:0 2px; width:auto; cursor:pointer; line-height:1; vertical-align:middle;">✕</button>` : ''}</div>
+          <div class="member-sub">${u.birthYear ? formatBirthYear(u.birthYear) + '년생' : '-'} · ${u.city || '-'}</div>
           <div style="display:flex; flex-wrap:wrap; gap:3px; margin-top:4px;">
             <span style="background:${si.color}22; color:${si.color}; border:1px solid ${si.color}55; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">${si.label}</span>
             <span style="background:${partColor}22; color:${partColor}; border:1px solid ${partColor}55; padding:1px 7px; border-radius:10px; font-size:0.68rem; font-weight:700;">${partLabel}</span>
@@ -771,7 +813,7 @@ function renderAllMembersPanel() {
       <div class="member-actions">
         ${u.status !== 'waiting' ? `<button onclick="adminChangeStatus('${u.id}', 'waiting', '${escNick}')" style="background:#f0f2f5; color:#34495e; border:1px solid #ddd; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-bottom:2px;">대기 복구</button>` : ''}
         <button onclick="adminTogglePart('${u.id}', '${escNick}', ${u.isParticipating !== false})" style="background:${partColor}; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">${u.isParticipating !== false ? '불참전환' : '참여전환'}</button>
-        ${!u.isAdmin ? `<button onclick="adminDeleteUser('${u.id}', '${escNick}')" style="background:#fdf0f0; color:#e74c3c; border:1px solid #f5c6c6; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">삭제</button>` : ''}
+        ${!u.isAdmin ? `<button onclick="adminResetUser('${u.id}', '${escNick}')" style="background:#fdf0f0; color:#e74c3c; border:1px solid #f5c6c6; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">초기화</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -782,26 +824,58 @@ window.adminChangeStatus = function(uid, newStatus, nickname) {
   if (!confirm(`${nickname}님의 상태를 '${newStatus}'로 변경하시겠습니까?`)) return;
   const updates = { status: newStatus };
   if (newStatus !== 'matched') updates.partnerId = null;
-  db.collection('users').doc(uid).update(updates).then(() => alert(`${nickname}님 상태가 변경되었습니다.`));
+  db.collection('users').doc(uid).update(updates).then(() => {
+    alert(`${nickname}님 상태가 변경되었습니다.`);
+    if (adminUsersData[uid]) { Object.assign(adminUsersData[uid], updates); }
+    renderAllMembersPanel();
+  });
 };
 
 window.adminTogglePart = function(uid, nickname, currentlyParticipating) {
   const newPart = !currentlyParticipating;
   const msg = newPart ? `${nickname}님을 참여O로 변경하시겠습니까?` : `${nickname}님을 불참으로 변경하시겠습니까?`;
   if (!confirm(msg)) return;
-  db.collection('users').doc(uid).update({ isParticipating: newPart }).then(() => alert('변경 완료!'));
+  db.collection('users').doc(uid).update({ isParticipating: newPart }).then(() => {
+    alert('변경 완료!');
+    if (adminUsersData[uid]) adminUsersData[uid].isParticipating = newPart;
+    renderAllMembersPanel();
+  });
+};
+
+window.adminResetUser = function(uid, nickname) {
+  if (!confirm(`${nickname}님의 매칭 상태를 초기화합니까?\n(대기 상태로 복구, 제출 내역 삭제)`)) return;
+  const u = adminUsersData[uid];
+  const batch = db.batch();
+  if (u?.partnerId) {
+    batch.update(db.collection('users').doc(u.partnerId), { status: 'waiting', partnerId: null });
+    if (adminUsersData[u.partnerId]) Object.assign(adminUsersData[u.partnerId], { status: 'waiting', partnerId: null });
+  }
+  batch.update(db.collection('users').doc(uid), { status: 'waiting', partnerId: null });
+  batch.delete(db.collection('requests').doc(uid));
+  batch.commit().then(() => {
+    if (adminUsersData[uid]) Object.assign(adminUsersData[uid], { status: 'waiting', partnerId: null });
+    renderAllMembersPanel();
+    alert(`${nickname}님 초기화 완료`);
+  });
 };
 
 window.adminDeleteUser = function(uid, nickname) {
-  if (!confirm(`⚠️ ${nickname}님의 프로필/지망 데이터를 삭제하시겠습니까?\n\n(로그인 계정은 유지됩니다)`)) return;
-  const userData = adminUsersData[uid];
+  if (!confirm(`⚠️ ${nickname}님을 정말 탈퇴시키겠습니까?\n\n프로필·지망 데이터가 모두 삭제됩니다.\n(로그인 계정은 유지됩니다)\n\n이 작업은 되돌릴 수 없습니다.`)) return;
+  if (!confirm(`마지막 확인: "${nickname}" 회원을 삭제합니다.`)) return;
+  const u = adminUsersData[uid];
   const batch = db.batch();
-  if (userData?.partnerId) {
-    batch.update(db.collection('users').doc(userData.partnerId), { status: 'waiting', partnerId: null });
+  if (u?.partnerId) {
+    batch.update(db.collection('users').doc(u.partnerId), { status: 'waiting', partnerId: null });
+    if (adminUsersData[u.partnerId]) Object.assign(adminUsersData[u.partnerId], { status: 'waiting', partnerId: null });
   }
   batch.delete(db.collection('users').doc(uid));
   batch.delete(db.collection('requests').doc(uid));
-  batch.commit().then(() => alert(`${nickname}님 데이터가 삭제되었습니다.`));
+  batch.set(db.collection('bannedUsers').doc(uid), { nickname, bannedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  batch.commit().then(() => {
+    delete adminUsersData[uid];
+    renderAllMembersPanel();
+    alert(`${nickname}님 데이터가 삭제되었습니다. (접속 차단됨)`);
+  });
 };
 
 function loadAdminData() {
@@ -842,8 +916,10 @@ function renderAdminFromSnaps(snap, reqSnap) {
   if (emergencySel2) emergencySel2.innerHTML = '<option value="">불참 회원 선택</option>';
 
   const waitingListDiv = document.getElementById('admin-waiting-list');
+  const submittedListDiv = document.getElementById('admin-submitted-list');
   const logListDiv = document.getElementById('admin-requests-list');
   if (waitingListDiv) waitingListDiv.innerHTML = "";
+  if (submittedListDiv) submittedListDiv.innerHTML = "";
   if (logListDiv) logListDiv.innerHTML = "";
   let logsArray = [];
 
@@ -869,13 +945,17 @@ function renderAdminFromSnaps(snap, reqSnap) {
       if (emergencySel2) emergencySel2.innerHTML += opt;
     }
 
-    if (u.isParticipating && u.status === 'waiting') {
+    if (u.isParticipating && u.status === 'waiting' && !u.emergencyAdded) {
       const req = requestsData[doc.id] || {};
       const p1 = userMap[req.pref1] || "-"; const p2 = userMap[req.pref2] || "-"; const dp = userMap[req.dispref1] || "-";
       if (waitingListDiv) waitingListDiv.innerHTML += `<div style="padding:8px 0; border-bottom:1px solid #eee;">
         ⏳ ${u.emoji || '👤'} <b>${u.nickname}</b> <span style="font-size:0.8rem; color:#888; float:right;">(${p1} / ${p2} // ${dp})</span></div>`;
     }
-    if (u.status === 'submitted' && requestsData[doc.id] && !requestsData[doc.id].isDraft) {
+    if (u.isParticipating && u.status === 'submitted' && requestsData[doc.id] && !requestsData[doc.id].isDraft) {
+      const req = requestsData[doc.id] || {};
+      const p1 = userMap[req.pref1] || '-';
+      const emerTag = u.emergencyAdded ? ' <span style="font-size:0.7rem;color:#e67e22;background:#fff3e0;border-radius:5px;padding:1px 5px;">긴급</span>' : '';
+      if (submittedListDiv) submittedListDiv.innerHTML += `<div style="padding:8px 0; border-bottom:1px solid #eee;">✅ ${u.emoji||'👤'} <b>${u.nickname}</b>${emerTag} <span style="font-size:0.8rem;color:#888;float:right;">1지망: ${p1}</span></div>`;
       logsArray.push({ id: doc.id, req: requestsData[doc.id] });
     }
   });
@@ -883,6 +963,7 @@ function renderAdminFromSnaps(snap, reqSnap) {
   const heldCountEl = document.getElementById('held-count');
   if (heldCountEl) heldCountEl.innerText = heldCount;
   if (waitingListDiv && waitingListDiv.innerHTML === "") waitingListDiv.innerHTML = "<p style='color:#777;'>모든 참가자가 제출을 완료했습니다.</p>";
+  if (submittedListDiv && submittedListDiv.innerHTML === "") submittedListDiv.innerHTML = "<p style='color:#777;'>아직 제출한 참여자가 없습니다.</p>";
 
   logsArray.sort((a, b) => (b.req.timestamp?.seconds || 0) - (a.req.timestamp?.seconds || 0));
   logsArray.slice(0, 4).forEach(log => {
@@ -1053,7 +1134,7 @@ function showNextProposal() {
     `<div style="background:white; padding:8px 12px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.06); text-align:center; min-width:70px;">
       <div style="font-size:2rem;">${u.emoji||'👩'}</div>
       <div style="font-weight:800; font-size:0.85rem;">${u.nickname}</div>
-      <div style="font-size:0.72rem; color:#888;">${u.birthYear % 100}년생 · ${u.city}</div>
+      <div style="font-size:0.72rem; color:#888;">${formatBirthYear(u.birthYear)}년생 · ${u.city}</div>
     </div>`
   ).join('<div style="font-size:2rem; color:var(--soft-rose);">💘</div>');
 
@@ -1195,11 +1276,11 @@ function updateManualMatchPreview() {
 
   document.getElementById('manual-card-a-emoji').innerText = A.emoji || '👤';
   document.getElementById('manual-card-a-name').innerText = A.nickname;
-  document.getElementById('manual-card-a-info').innerText = `${A.birthYear % 100}년생 · ${A.city}`;
+  document.getElementById('manual-card-a-info').innerText = `${formatBirthYear(A.birthYear)}년생 · ${A.city}`;
   document.getElementById('manual-card-a-spec').innerText = getScoreLabel(A.personalityScore || 50);
   document.getElementById('manual-card-b-emoji').innerText = B.emoji || '👤';
   document.getElementById('manual-card-b-name').innerText = B.nickname;
-  document.getElementById('manual-card-b-info').innerText = `${B.birthYear % 100}년생 · ${B.city}`;
+  document.getElementById('manual-card-b-info').innerText = `${formatBirthYear(B.birthYear)}년생 · ${B.city}`;
   document.getElementById('manual-card-b-spec').innerText = getScoreLabel(B.personalityScore || 50);
 
   const rankA = getRank(reqA, bId); const rankB = getRank(reqB, aId);
