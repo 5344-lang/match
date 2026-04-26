@@ -12,10 +12,13 @@ const db = firebase.firestore();
 
 // 1. 초기 설정 (연도 생성)
 const birthYearSelect = document.getElementById('birthYear');
+const birthPlaceholder = document.createElement('option');
+birthPlaceholder.value = ''; birthPlaceholder.innerText = '출생 연도 선택';
+birthPlaceholder.disabled = true; birthPlaceholder.selected = true;
+birthYearSelect.appendChild(birthPlaceholder);
 for (let year = 2005; year >= 1950; year--) {
   const option = document.createElement('option');
   option.value = year; option.innerText = `${year}년생`;
-  if (year === 1996) option.selected = true;
   birthYearSelect.appendChild(option);
 }
 
@@ -151,7 +154,7 @@ function openMyPage() {
   if (myUserData.status === 'submitted' || myUserData.status === 'matched') return alert("제출 후엔 프로필 수정이 불가합니다.");
   if (globalSettings?.isMatchingActive) return alert("매칭 진행 중에는 프로필 수정이 불가합니다.");
   document.getElementById('nickname').value = myUserData.nickname || "";
-  document.getElementById('birthYear').value = myUserData.birthYear || "1996";
+  document.getElementById('birthYear').value = myUserData.birthYear || "";
   document.getElementById('kakao-link').value = myUserData.kakaoLink || "";
 
   const participatingToggle = document.getElementById('isParticipating');
