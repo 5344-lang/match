@@ -552,6 +552,9 @@ function renderCard() {
   }
   actions.style.display = 'block';
   document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${allUsers.length}`;
+  const isLast = currentIndex === allUsers.length - 1;
+  const nextBtn = document.querySelector('.nav-btn:last-child');
+  if (nextBtn) { nextBtn.innerText = isLast ? '처음으로 🔄' : '다음 ▶'; }
   const u = allUsers[currentIndex];
   document.getElementById('c-emoji').innerText = u.emoji || '👩';
   document.getElementById('c-nickname').innerHTML = `${u.nickname} <span id="c-age">${formatBirthYear(u.birthYear)}년생</span>`;
@@ -561,7 +564,11 @@ function renderCard() {
   document.getElementById('c-intro').innerText = u.intro || '';
 }
 
-window.nextCard = function() { if (currentIndex < allUsers.length - 1) { currentIndex++; renderCard(); } };
+window.nextCard = function() {
+  if (currentIndex < allUsers.length - 1) { currentIndex++; }
+  else { currentIndex = 0; }
+  renderCard();
+};
 window.prevCard = function() { if (currentIndex > 0) { currentIndex--; renderCard(); } };
 
 window.pickCard = function(prefType) {
