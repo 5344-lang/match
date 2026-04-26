@@ -811,7 +811,6 @@ function renderAllMembersPanel() {
         </div>
       </div>
       <div class="member-actions">
-        ${u.status !== 'waiting' ? `<button onclick="adminChangeStatus('${u.id}', 'waiting', '${escNick}')" style="background:#f0f2f5; color:#34495e; border:1px solid #ddd; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-bottom:2px;">대기 복구</button>` : ''}
         <button onclick="adminTogglePart('${u.id}', '${escNick}', ${u.isParticipating !== false})" style="background:${partColor}; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">${u.isParticipating !== false ? '불참전환' : '참여전환'}</button>
         ${!u.isAdmin ? `<button onclick="adminResetUser('${u.id}', '${escNick}')" style="background:#fdf0f0; color:#e74c3c; border:1px solid #f5c6c6; font-size:0.7rem; padding:5px 8px; width:auto; border-radius:8px; margin-top:2px;">초기화</button>` : ''}
       </div>
