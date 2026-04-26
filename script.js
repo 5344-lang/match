@@ -1088,7 +1088,9 @@ document.getElementById('admin-profile-check-end-btn').addEventListener('click',
     .then(() => goToAdminStep(1));
 });
 document.getElementById('admin-start-btn').addEventListener('click', () => {
-  db.collection('settings').doc('global').set({ isMatchingActive: true, resultsPublished: false }, { merge: true });
+  if (!confirm("매칭을 시작하시겠습니까?\n참여자들에게 카드 선택 화면이 열립니다.")) return;
+  db.collection('settings').doc('global').set({ isMatchingActive: true, resultsPublished: false }, { merge: true })
+    .then(() => alert("✅ 매칭이 시작되었습니다!"));
 });
 document.getElementById('admin-stop-btn').addEventListener('click', () => {
   if (!confirm("매칭을 종료하고 매칭 검토 단계로 넘어가시겠습니까?")) return;
