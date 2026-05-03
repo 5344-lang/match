@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Match 💘</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💘</text></svg>">
+  <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1 onclick="goHome()" style="cursor:pointer;">Secret Match 💘</h1>
+      <div class="header-btns">
+        <span id="user-greeting" class="user-greeting" style="display:none;"></span>
+        <button id="admin-link-btn" class="nav-header-btn" style="display:none;">관리자</button>
+        <button id="mypage-btn" class="nav-header-btn" style="display:none;">마이페이지</button>
+        <button id="logout-btn" class="nav-header-btn" style="display:none;">로그아웃</button>
+      </div>
+    </header>
+
+    <div id="ticker-container" style="display:none; overflow:hidden; background:var(--deep-navy); border-radius:10px; padding:8px 0; margin-bottom:15px;">
+      <div id="ticker-text" style="display:inline-block; white-space:nowrap; padding-left:100%; color:white; font-weight:700; font-size:0.88rem; animation:ticker-scroll 20s linear infinite;"></div>
+    </div>
+
+    <section id="auth-section" style="display: none;">
+      <h2>로그인 및 시작하기</h2>
+      <div class="input-card">
+        <input type="text" id="userid" placeholder="아이디" required>
+        <input type="password" id="password" placeholder="비밀번호 (4자리 이상)" required>
+      </div>
+      <div class="auth-buttons">
+        <button id="login-btn">로그인</button>
+        <button id="signup-btn" class="secondary-btn">회원가입</button>
+      </div>
+    </section>
+
+    <section id="profile-section" style="display: none;">
+      <h2>내 프로필 (마이페이지)</h2>
+      <form id="profile-form">
+        <div class="form-group photo-group">
+          <div class="photo-upload-container">
+            <div class="upload-icon" id="preview-emoji">👩</div>
+            <div class="file-info" style="margin-bottom: 15px;">나를 대표하는 이모티콘을 선택하세요.</div>
+            <div class="emoji-grid" id="emoji-grid">
+              <div class="emoji-item selected" data-emoji="👩">👩</div>
+              <div class="emoji-item" data-emoji="🧑">🧑</div>
+              <div class="emoji-item" data-emoji="👨">👨</div>
+              <div class="emoji-item" data-emoji="👧">👧</div>
+              <div class="emoji-item" data-emoji="👦">👦</div>
+              <div class="emoji-item" data-emoji="👩‍🦱">👩‍🦱</div>
+              <div class="emoji-item" data-emoji="🧑‍🦱">🧑‍🦱</div>
+              <div class="emoji-item" data-emoji="👨‍🦱">👨‍🦱</div>
+              <div class="emoji-item" data-emoji="기타" style="font-size:0.72rem; font-weight:700; color:#888; width:45px; height:45px;">직접<br>입력</div>
+            </div>
+            <input type="text" id="custom-emoji" class="emoji-input" maxlength="2" placeholder="입력" style="display: none;">
+          </div>
+        </div>
+        
+        <div class="input-card">
+          <input type="text" id="nickname" placeholder="닉네임" required>
+          <select id="birthYear"></select>
+          <select id="city" required>
+            <option value="" disabled selected>거주 지역 선택</option>
+            <option value="대구">대구</option><option value="부산">부산</option>
+            <option value="포항">포항</option><option value="구미">구미</option>
+            <option value="경산">경산</option><option value="울산">울산</option>
+            <option value="기타">기타 지역 (직접 입력)</option>
+          </select>
+          <input type="text" id="custom-city" placeholder="지역을 직접 입력해주세요" style="display: none; margin-top: 10px;">
+          <input type="url" id="kakao-link" placeholder="본인의 오픈 카카오톡 링크" required style="margin-top: 15px;">
+        </div>
+
+        <div class="spectrum-container">
+          <div class="spectrum-header">
+            <span class="spectrum-title">나의 성향 스펙트럼</span>
+            <span id="spectrum-label" class="personality-result">세글</span>
+          </div>
+          <div class="range-input-wrapper">
+            <input type="range" id="personality-slider" min="0" max="100" step="1" value="50">
+          </div>
+          <div class="spectrum-poles"><span class="pole-tag">한글</span><span class="pole-tag">두글</span></div>
+        </div>
+
+        <textarea id="intro" placeholder="(자유롭게 어필하세요)"></textarea>
+        
+        <label class="toggle-container">
+          <input type="checkbox" id="isParticipating">
+          <span class="switch"></span>
+          <span class="toggle-label">이번 회차 매칭에 참여합니다</span>
+        </label>
+        <p id="profile-confirm-lock-msg" style="display:none; font-size:0.82rem; color:#27ae60; margin-top:-15px; margin-bottom:20px; text-align:center;">🔒 프로필 점검 완료 후엔 참여 여부를 변경할 수 없습니다.</p>
+        
+        <button type="submit" id="save-profile-btn">프로필 저장</button>
+        <button type="button" id="withdraw-btn" style="background:none; color:#bbb; font-size:0.8rem; margin-top:8px; padding:8px; text-decoration:underline; box-shadow:none;">계정 탈퇴</button>
+      </form>
+    </section>
+
+    <section id="waitroom-section" style="display: none;">
+      <div id="waitroom-header" style="display:none; text-align:center; padding:10px 0 20px;">
+        <span id="home-step-pill">1단계 · 참여 결정</span>
+
+        <div id="home-stage-emoji" style="font-size:3.2rem; margin:22px 0 12px; line-height:1;">⏳</div>
+        <h2 id="home-stage-title" style="font-size:1.45rem; font-weight:900; color:var(--deep-navy); margin-bottom:10px; line-height:1.35;">참여 여부를 정해주세요</h2>
+        <p id="home-stage-desc" style="font-size:0.88rem; color:#999; line-height:1.8; margin-bottom:24px; white-space:pre-line;">이번 매칭에 참여할지 결정해주세요.</p>
+
+        <div id="home-toggle-wrapper" style="display:flex; justify-content:center; margin-bottom:20px;">
+          <div class="home-participation-card" id="home-part-card">
+            <label class="toggle-container" style="margin-bottom:0; gap:14px;">
+              <input type="checkbox" id="waitroom-participation-toggle">
+              <span class="switch"></span>
+              <span class="toggle-label" style="font-size:0.95rem; font-weight:800;">이번 회차 참여</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="waitroom-main-btn" style="display:none; margin-bottom:8px;"></button>
+        <button id="waitroom-sub-btn" style="display:none; background:#F0F2F5; color:#666; font-size:0.85rem; padding:11px; margin-top:4px;"></button>
+
+        <div id="home-picks-summary" style="display:none; margin-top:22px; background:white; border:1.5px solid #f5dae5; border-radius:16px; padding:16px; text-align:left;">
+          <p style="font-size:0.72rem; font-weight:700; color:#bbb; margin-bottom:12px; text-align:center; letter-spacing:0.08em;">내 선택 현황</p>
+          <div id="home-picks-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
+        </div>
+
+        <p id="room-match-label" style="font-size:0.78rem; color:#ccc; margin-top:18px;"></p>
+      </div>
+
+      <div id="selection-area" style="display: none;">
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="prevCard()">◀ 이전</button>
+          <span id="card-counter">1 / 1</span>
+          <button class="nav-btn" onclick="nextCard()">다음 ▶</button>
+        </div>
+        <div class="swipe-card" id="current-card">
+          <div id="card-content">
+            <div class="card-img-placeholder" id="c-emoji">👩</div>
+            <h3 id="c-nickname">닉네임 <span id="c-age">96년생</span></h3>
+            <p id="c-city" class="c-badge">대구</p>
+            <div class="c-spectrum-display">
+              <p>성향: <span id="c-score-label">세글</span></p>
+              <div class="custom-progress-bar"><div class="custom-progress-fill" id="c-mini-fill"></div></div>
+            </div>
+            <p id="c-intro" class="c-intro-text">자기소개</p>
+          </div>
+        </div>
+        <div class="card-actions" id="card-action-btns">
+          <div class="action-grid top-actions">
+            <button class="act-btn pref1" onclick="pickCard('pref1')">1지망</button>
+            <button class="act-btn pref2" id="btn-pref2" onclick="pickCard('pref2')">2지망</button>
+            <button class="act-btn pref3" id="btn-pref3" onclick="pickCard('pref3')">3지망</button>
+          </div>
+          <div class="action-grid bottom-actions">
+            <button class="act-btn dispref" id="btn-dispref" onclick="pickCard('dispref1')">비선호</button>
+          </div>
+        </div>
+        <div class="my-picks-box">
+          <h4>📌 나의 선택 현황</h4>
+          <ul id="my-picks-list">
+            <li>1지망: <div class="pick-right-side"><span id="pick-1-name" class="empty-pick">미선택</span><button class="reset-pick-btn" id="reset-pref1" onclick="resetPick('pref1')">🔄</button></div></li>
+            <li id="li-pref2">2지망: <div class="pick-right-side"><span id="pick-2-name" class="empty-pick">미선택</span><button class="reset-pick-btn" id="reset-pref2" onclick="resetPick('pref2')">🔄</button></div></li>
+            <li id="li-pref3">3지망: <div class="pick-right-side"><span id="pick-3-name" class="empty-pick">미선택</span><button class="reset-pick-btn" id="reset-pref3" onclick="resetPick('pref3')">🔄</button></div></li>
+            <li id="li-dispref">비선호: <div class="pick-right-side"><span id="pick-dis-name" class="empty-pick">미선택</span><button class="reset-pick-btn" id="reset-dispref1" onclick="resetPick('dispref1')">🔄</button></div></li>
+          </ul>
+          <button id="submit-selection-btn" class="disabled-submit" disabled style="margin-top: 15px;">이대로 최종 제출하기</button>
+        </div>
+      </div>
+
+      <div id="submitted-lock-area" style="display: none; text-align: center; padding: 40px 10px;">
+        <h2 style="font-size: 3rem;">🔒</h2>
+        <h3>제출 완료</h3>
+        <p id="submitted-lock-desc" style="color: #777; margin-top: 10px;">결과를 기다려주세요.</p>
+        <button id="edit-picks-btn" class="secondary-btn" style="margin-top: 20px; font-size: 0.9rem;">✏️ 지망 수정하기</button>
+      </div>
+
+      <div id="result-ready-area" style="display: none; text-align: center; padding: 40px 10px;">
+        <button id="check-result-btn" class="heart-pulse-btn">💖</button>
+        <p class="pulse-text">결과 확인하기!<br>눌러주세요!</p>
+      </div>
+
+      <div id="profile-check-area" style="display: none;">
+        <div id="profile-confirmed-badge" style="display:none; background:#e8f8f0; padding:24px; border-radius:16px; text-align:center; margin-bottom:15px;">
+          <h3 style="color:#27ae60; font-size:1.3rem;">✅ 프로필 점검 완료!</h3>
+          <p style="color:#555; margin-top:8px; line-height:1.6;">이번 매칭 참여 의사가 확정되었습니다.<br>매칭을 기다려주세요.</p>
+        </div>
+        <div id="profile-not-confirmed-area">
+          <div class="status-card" style="margin-bottom:15px;">
+            <h3 style="color:var(--deep-navy); margin-bottom:8px;">🔍 프로필 점검 기간</h3>
+            <p style="color:#777; line-height:1.6; margin-bottom:20px;">프로필을 확인하고<br>이번 매칭 참여 여부를 확정해주세요.</p>
+            <button id="check-my-profile-btn" style="margin-bottom:10px;">내 프로필 확인/수정하기</button>
+            <button id="confirm-profile-btn" style="background:var(--soft-rose);">✅ 프로필 점검 완료하기</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 파트너 정보 팝업 -->
+    <div id="partner-popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px;">
+      <div style="background:white; border-radius:24px; padding:28px; width:100%; max-width:360px; position:relative; animation:fadeInUp 0.3s ease;">
+        <button onclick="document.getElementById('partner-popup').style.display='none'" style="position:absolute; top:14px; right:14px; background:none; width:auto; padding:6px 10px; font-size:1rem; color:#aaa; box-shadow:none;">✕</button>
+        <div style="text-align:center;">
+          <div id="popup-emoji" style="font-size:3.5rem; margin-bottom:10px;">👩</div>
+          <h3 id="popup-nick" style="font-size:1.4rem; color:var(--deep-navy); margin-bottom:4px;"></h3>
+          <p id="popup-basic" style="font-size:0.85rem; color:#888; margin-bottom:16px;"></p>
+        </div>
+        <div style="background:#fafafa; border-radius:14px; padding:14px; margin-bottom:16px;">
+          <p style="font-size:0.78rem; color:#aaa; font-weight:700; margin-bottom:8px; letter-spacing:0.05em;">성향 스펙트럼</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.78rem; color:#888;">한글</span>
+            <span id="popup-spec-label" style="font-size:0.85rem; font-weight:800; color:var(--soft-rose);"></span>
+            <span style="font-size:0.78rem; color:#888;">두글</span>
+          </div>
+          <div class="custom-progress-bar" style="width:100%;"><div id="popup-spec-fill" class="custom-progress-fill"></div></div>
+        </div>
+        <div id="popup-intro" style="font-size:0.88rem; color:#555; line-height:1.7; background:#fff5f9; border-radius:12px; padding:12px; margin-bottom:16px; min-height:40px;"></div>
+        <button id="popup-kakao-btn" class="kakao-btn" style="display:none; width:100%; font-size:0.95rem; padding:13px;">💬 오픈톡으로 연락하기</button>
+      </div>
+    </div>
+
+    <section id="result-section" style="display: none;">
+      <div class="result-stage">
+        <h2 class="result-title">🎉 매칭 성공! 🎉</h2>
+        <div class="cards-animation-container">
+          <div class="anim-card my-card" id="anim-my-card">
+            <div class="card-img-placeholder" id="r-my-emoji">👩</div>
+            <h4 id="r-my-nick">나</h4>
+          </div>
+          <div class="heart-icon">💘</div>
+          <div class="anim-card partner-card" id="anim-partner-card" style="cursor:pointer;" onclick="openPartnerPopup()">
+            <div class="card-img-placeholder" id="r-partner-emoji">👩</div>
+            <h4 id="r-partner-nick">???</h4>
+            <p style="font-size:0.7rem; color:#FD79A8; margin-top:4px;">탭해서 보기 👆</p>
+          </div>
+        </div>
+        <button id="kakao-contact-btn" class="kakao-btn" style="display:none; margin-top:10px; font-size:0.95rem; padding:14px;">💬 오픈톡으로 연락하기</button>
+      </div>
+    </section>
+
+    <section id="admin-section" style="display: none;">
+      <h2>🛠 관리자 대시보드</h2>
+
+      <div id="admin-stats-bar" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:12px 14px; background:#f4f7f6; border-radius:14px; font-size:0.82rem; font-weight:700;"></div>
+
+      <div class="admin-nav-tabs">
+        <button class="admin-nav-tab active" id="admin-tab-match" onclick="switchAdminView('match')">📊 매칭 관리</button>
+        <button class="admin-nav-tab" id="admin-tab-members" onclick="switchAdminView('members')">👥 전체회원 관리</button>
+        <button class="admin-nav-tab" id="admin-tab-banned" onclick="switchAdminView('banned')">🚫 차단 관리</button>
+      </div>
+
+      <div id="admin-match-view">
+      <div class="admin-step-indicator">
+        <div class="step-item" onclick="goToAdminStep(0)">
+          <div class="step-circle active" id="step-circle-0">1</div>
+          <div class="step-label">프로필 점검</div>
+        </div>
+        <div class="step-connector" id="step-conn-0"></div>
+        <div class="step-item" onclick="goToAdminStep(1)">
+          <div class="step-circle" id="step-circle-1">2</div>
+          <div class="step-label">매칭 진행</div>
+        </div>
+        <div class="step-connector" id="step-conn-1"></div>
+        <div class="step-item" onclick="goToAdminStep(2)">
+          <div class="step-circle" id="step-circle-2">3</div>
+          <div class="step-label">매칭 검토</div>
+        </div>
+        <div class="step-connector" id="step-conn-2"></div>
+        <div class="step-item" onclick="goToAdminStep(3)">
+          <div class="step-circle" id="step-circle-3">4</div>
+          <div class="step-label">결과 발표</div>
+        </div>
+      </div>
+
+      <!-- Step 0: 프로필 점검 -->
+      <div id="admin-step-0" style="display:none;">
+        <div class="admin-panel">
+          <h3>👥 참여예정자 목록</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">이번 매칭 참여 예정인 회원 현황입니다.</p>
+          <div id="admin-participants-all" class="requests-list" style="max-height:200px; background:#fdfdfd;"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>🔍 프로필 점검 기간 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">참여자들이 프로필을 확인하고 참여 여부를 확정하는 기간을 제어합니다.</p>
+          <button id="admin-profile-check-start-btn" class="action-btn start">프로필 점검 기간 시작</button>
+          <button id="admin-profile-check-end-btn" class="action-btn stop">프로필 점검 기간 종료 →</button>
+          <div id="profile-check-confirm-status" style="margin-top:10px; font-size:0.85rem; color:#555;"></div>
+          <div style="margin-top:12px; border-top:1px solid #eee; padding-top:12px;">
+            <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">📢 전광판 메시지 <span style="font-weight:400;">(비워두면 단계별 자동 표시)</span></p>
+            <input type="text" id="ticker-input" placeholder="비우면 자동 / 직접 입력하면 덮어쓰기" style="margin-bottom:8px;">
+            <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">📅 매칭 회차 이름</p>
+            <input type="text" id="match-title-input" placeholder="ex) 26년 5월 매칭" style="margin-bottom:8px;">
+            <p style="font-size:0.85rem; color:#777; margin-bottom:8px;">💬 관리자 오픈톡 링크 <span style="font-weight:400;">(불참자에게 노출)</span></p>
+            <input type="text" id="admin-kakao-link-input" placeholder="https://open.kakao.com/o/..." style="margin-bottom:8px;">
+            <button id="apply-settings-btn" style="background:#34495e; padding:10px;">설정 적용하기</button>
+          </div>
+          <div style="margin-top:12px; border-top:1px dashed #f5c6c6; padding-top:12px;">
+            <p style="font-size:0.78rem; color:#e74c3c; margin-bottom:6px; font-weight:700;">⚠️ 이 단계 초기화</p>
+            <button id="reset-step0-btn" style="background:#fdf0f0; color:#e74c3c; font-size:0.8rem; padding:9px; border:1px solid #f5c6c6; width:auto;">🔄 프로필 점검 초기화 (isProfileConfirmed 전체 리셋)</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>⚠️ 미점검 참여자 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">프로필 점검을 완료하지 않은 참여자 목록입니다. 필요시 참여 X로 수동 변경할 수 있습니다.</p>
+          <div id="admin-unconfirmed-manage" class="requests-list" style="max-height:200px; background:#fdfdfd;"></div>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn" onclick="goToAdminStep(1)">다음 단계 →</button>
+        </div>
+      </div>
+
+      <!-- Step 1: 매칭 진행 -->
+      <div id="admin-step-1" style="display:none;">
+        <div class="admin-panel">
+          <h3>⚡ 긴급 참여자 추가</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">불참 회원을 매칭 진행 중에 추가합니다. <b>다른 참여자 카드에는 노출되지 않으며</b> 본인만 지망을 제출할 수 있습니다. (패널티)</p>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="emergency-add-user-1" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">불참 회원 선택</option></select>
+            <button onclick="emergencyAddUser('emergency-add-user-1')" style="flex-shrink:0; padding:10px 14px; background:#e67e22; width:auto;">⚡ 추가</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>🚀 매칭 시스템 제어</h3>
+          <button id="admin-start-btn" class="action-btn start">매칭 시작하기</button>
+          <button id="admin-stop-btn" class="action-btn stop">매칭 종료 →</button>
+          <div class="toggle-list" style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+            <label class="toggle-container list-item"><span class="toggle-label">2지망 활성화</span><input type="checkbox" id="toggle-pref2" checked><span class="switch"></span></label>
+            <label class="toggle-container list-item"><span class="toggle-label">3지망 활성화</span><input type="checkbox" id="toggle-pref3" checked><span class="switch"></span></label>
+            <label class="toggle-container list-item"><span class="toggle-label">비선호 활성화</span><input type="checkbox" id="toggle-dispref" checked><span class="switch"></span></label>
+            <button id="apply-toggles-btn" style="background:#34495e; padding:10px; margin-top:10px;">옵션 적용하기</button>
+          </div>
+          <div style="margin-top:12px; border-top:1px dashed #f5c6c6; padding-top:12px;">
+            <p style="font-size:0.78rem; color:#e74c3c; margin-bottom:6px; font-weight:700;">⚠️ 이 단계 초기화</p>
+            <button id="reset-step1-btn" style="background:#fdf0f0; color:#e74c3c; font-size:0.8rem; padding:9px; border:1px solid #f5c6c6; width:auto;">🔄 매칭 제출 초기화 (전원 waiting 복구)</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>✅ 제출자 목록 (실시간)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">지망을 제출 완료한 참여자 목록입니다.</p>
+          <div id="admin-submitted-list" class="requests-list" style="max-height:150px; background:#f0fff4;"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>⏳ 미제출자 현황 (실시간)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">아직 제출하지 않은 참여자의 현재 고민 상태를 보여줍니다.</p>
+          <div id="admin-waiting-list" class="requests-list" style="max-height:150px; background:#fffcfc;"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>📋 최근 제출 로그</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">시스템이 잘 작동하는지 확인용입니다.</p>
+          <div id="admin-requests-list" class="requests-list" style="margin-top:10px;"></div>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(0)">← 이전</button>
+          <button class="step-nav-btn" onclick="goToAdminStep(2)">다음 단계 →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: 매칭 검토 -->
+      <div id="admin-step-2" style="display:none;">
+        <div class="admin-panel">
+          <h3>⚡ 긴급 참여자 추가</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">불참 회원을 매칭 검토 중에 추가합니다. <b>다른 참여자 카드에는 노출되지 않으며</b> 수동 매칭으로 연결할 수 있습니다. (패널티)</p>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="emergency-add-user-2" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">불참 회원 선택</option></select>
+            <button onclick="emergencyAddUser('emergency-add-user-2')" style="flex-shrink:0; padding:10px 14px; background:#e67e22; width:auto;">⚡ 추가</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>🔬 매칭 검토 (자동 제안)</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">시스템이 지망 순위에 따라 커플을 한 쌍씩 제안합니다.</p>
+          <button id="start-auto-match-btn" style="background:#8e44ad; margin-bottom:15px;">매칭 제안 받기 시작</button>
+          <div id="sim-result-box" style="display:none; padding:15px; background:#f4f7f6; border-radius:12px; text-align:center;">
+            <h4 style="margin-bottom:10px; color:var(--deep-navy);">제안된 커플 💘</h4>
+            <div id="sim-team-members" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:12px;"></div>
+            <div id="sim-match-info" style="padding:12px; background:white; border-radius:10px; font-size:0.88rem; line-height:1.7; text-align:left;"></div>
+            <div id="sim-warning-msg" style="font-weight:bold; margin-top:10px;"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+              <button id="confirm-match-btn" style="background:#27ae60; flex:1; padding:12px;">💘 커플 확정</button>
+              <button id="hold-match-btn" style="background:#f39c12; flex:1; padding:12px;">⏸ 일단 보류</button>
+            </div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>💘 확정된 커플 목록</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">⚠️ 표시 = 카카오링크 없음</p>
+          <div id="admin-matched-list" class="requests-list" style="max-height:200px; background:#fff0f5;"></div>
+          <div style="margin-top:10px; border-top:1px dashed #f5c6c6; padding-top:10px;">
+            <p style="font-size:0.78rem; color:#e74c3c; margin-bottom:6px; font-weight:700;">⚠️ 이 단계 초기화</p>
+            <button id="reset-step2-btn" style="background:#fdf0f0; color:#e74c3c; font-size:0.8rem; padding:9px; border:1px solid #f5c6c6; width:auto;">🔄 매칭 확정 전체 취소 (submitted 복구)</button>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>🤝 수동 매칭</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">자동 제안으로 매칭되지 않은 경우 직접 지정합니다.</p>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+            <select id="manual-a-user" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">A 선택</option></select>
+            <span style="font-size:1.5rem; flex-shrink:0;">💘</span>
+            <select id="manual-b-user" style="margin-bottom:0; flex:1; padding:10px; font-size:0.85rem;"><option value="">B 선택</option></select>
+          </div>
+          <button id="manual-match-btn" style="background:#8e44ad;">수동 매칭 확정</button>
+
+          <div id="manual-match-preview" style="display:none; margin-top:15px; padding:15px; background:#f4f7f6; border-radius:14px;">
+            <h4 style="color:var(--deep-navy); margin-bottom:12px; text-align:center; font-size:0.95rem;">🤖 AI 관계 분석</h4>
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:14px;">
+              <div id="manual-card-a" style="background:white; padding:12px; border-radius:12px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.06); flex:1; max-width:120px; transition:0.3s;">
+                <div style="font-size:2rem;" id="manual-card-a-emoji">👤</div>
+                <div style="font-weight:800; font-size:0.85rem; margin:4px 0;" id="manual-card-a-name">-</div>
+                <div style="font-size:0.72rem; color:#888;" id="manual-card-a-info">-</div>
+                <div style="font-size:0.7rem; margin-top:5px; color:var(--soft-rose); font-weight:600;" id="manual-card-a-spec"></div>
+              </div>
+              <div style="font-size:2rem; flex-shrink:0; color:var(--soft-rose);">💘</div>
+              <div id="manual-card-b" style="background:white; padding:12px; border-radius:12px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.06); flex:1; max-width:120px; transition:0.3s; border:2px solid var(--soft-rose);">
+                <div style="font-size:2rem;" id="manual-card-b-emoji">👤</div>
+                <div style="font-weight:800; font-size:0.85rem; margin:4px 0;" id="manual-card-b-name">-</div>
+                <div style="font-size:0.72rem; color:#888;" id="manual-card-b-info">-</div>
+                <div style="font-size:0.7rem; margin-top:5px; color:var(--soft-rose); font-weight:600;" id="manual-card-b-spec"></div>
+              </div>
+            </div>
+            <div id="manual-match-info" style="background:white; border-radius:10px; padding:12px; font-size:0.85rem; line-height:1.9;"></div>
+            <div id="manual-match-verdict" style="margin-top:10px; padding:10px; border-radius:10px; font-size:0.88rem; font-weight:700; text-align:center;"></div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>⏸ 보류자 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:10px;">보류 중인 유저: <span id="held-count">0</span>명</p>
+          <button id="reset-held-btn" class="secondary-btn">보류자를 자동제안에 다시 포함</button>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(1)">← 이전</button>
+          <button class="step-nav-btn" onclick="goToAdminStep(3)">결과 발표 단계로 →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: 결과 발표 -->
+      <div id="admin-step-3" style="display:none;">
+        <div class="admin-panel">
+          <h3>📢 결과 발표</h3>
+          <p id="final-match-summary" style="font-size:1rem; color:var(--deep-navy); font-weight:800; margin-bottom:12px;">확정된 커플: 0쌍</p>
+          <div id="admin-matched-list-final" class="requests-list" style="max-height:250px; background:#fff0f5; margin-bottom:20px;"></div>
+          <button id="publish-results-btn" style="background:#2980b9; margin-bottom:10px;">전체 결과 발표하기 📢</button>
+          <button id="reset-step3-btn" style="background:#fdf0f0; color:#e74c3c; font-size:0.8rem; padding:9px; border:1px solid #f5c6c6; margin-bottom:10px;">🔄 결과 발표만 취소</button>
+          <button id="reset-all-btn" style="background:#e74c3c;">🚨 모든 유저 매칭 완전 초기화</button>
+        </div>
+        <div class="step-nav-bottom">
+          <button class="step-nav-btn secondary" onclick="goToAdminStep(2)">← 이전</button>
+        </div>
+      </div>
+
+      </div><!-- /admin-match-view -->
+
+      <!-- 전체회원 관리 -->
+      <div id="admin-members-panel" style="display:none;">
+        <div class="admin-panel">
+          <h3>👥 전체회원 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:12px;">가입된 모든 회원을 조회하고 관리합니다.</p>
+          <input type="text" id="member-search" placeholder="닉네임 검색..." oninput="renderAllMembersPanel()" style="margin-bottom:8px;">
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <select id="member-filter-status" onchange="renderAllMembersPanel()" style="flex:1; margin-bottom:0; padding:10px; font-size:0.82rem;">
+              <option value="">전체 상태</option>
+              <option value="waiting">대기(waiting)</option>
+              <option value="submitted">제출(submitted)</option>
+              <option value="matched">매칭(matched)</option>
+              <option value="held">보류(held)</option>
+            </select>
+            <select id="member-filter-part" onchange="renderAllMembersPanel()" style="flex:1; margin-bottom:0; padding:10px; font-size:0.82rem;">
+              <option value="">참여여부 전체</option>
+              <option value="yes">참여O</option>
+              <option value="no">불참</option>
+            </select>
+          </div>
+          <p id="all-members-count" style="font-size:0.8rem; color:#aaa; margin-bottom:10px;"></p>
+          <div id="all-members-list" class="requests-list" style="max-height:500px;"></div>
+        </div>
+      </div>
+
+      <!-- 차단 관리 -->
+      <div id="admin-banned-panel" style="display:none;">
+        <div class="admin-panel">
+          <h3>🚫 차단된 회원 관리</h3>
+          <p style="font-size:0.85rem; color:#777; margin-bottom:12px;">접속이 차단된 회원 목록입니다. 차단 해제 시 다시 로그인할 수 있습니다.</p>
+          <div id="banned-members-list" class="requests-list" style="max-height:500px;"></div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+</html>
