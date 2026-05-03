@@ -1237,9 +1237,35 @@ document.getElementById('hold-match-btn').addEventListener('click', () => {
 document.getElementById('reset-held-btn').addEventListener('click', () => {
   db.collection('users').where('status', '==', 'held').get().then(snap => {
     if (snap.empty) return alert("보류 중인 유저가 없습니다.");
+    const heldIds = [];
     const names = [];
-    snap.forEach(doc => { db.collection('users').doc(doc.id).update({ status: 'submitted' }); names.push(doc.data().nickname); });
-    alert(`${names.join(', ')}님이 자동 제안 대상으로 복구되었습니다.\n"매칭 제안 받기 시작"을 다시 눌러주세요.`);
+    const batch = db.batch();
+    snap.forEach(doc => {
+      batch.update(doc.ref, { status: 'submitted' });
+      heldIds.push(doc.id);
+      names.push(doc.data().nickname);
+    });
+    batch.commit().then(() => {
+      const heldUsers = heldIds.map(id => adminUsersData[id]).filter(u => u);
+      const allPairs = [];
+      for (let i = 0; i < heldUsers.length; i++)
+        for (let j = i + 1; j < heldUsers.length; j++)
+          allPairs.push({ A: heldUsers[i], B: heldUsers[j], score: pairScore(heldUsers[i].id, heldUsers[j].id) });
+      allPairs.sort((a, b) => b.score - a.score);
+      proposedQueue = [];
+      const assigned = new Set();
+      for (const pair of allPairs) {
+        if (!assigned.has(pair.A.id) && !assigned.has(pair.B.id)) {
+          proposedQueue.push({ A: pair.A, B: pair.B });
+          assigned.add(pair.A.id);
+          assigned.add(pair.B.id);
+        }
+      }
+      if (proposedQueue.length === 0)
+        return alert(`${names.join(', ')}님이 복구되었습니다.\n인원 부족으로 자동 제안 없음. "매칭 제안 받기 시작"을 눌러주세요.`);
+      alert(`${names.join(', ')}님이 복구되었습니다.\n보류자 내 재매칭을 시작합니다.`);
+      showNextProposal();
+    });
   });
 });
 // ── 단계별 초기화 버튼 ──
